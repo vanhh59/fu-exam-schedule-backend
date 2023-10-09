@@ -7,11 +7,14 @@ module.exports = function (app) {
     //route lấy theo id
     app.get('/student/:id', studentController.getListByID);
 
+    //route lấy theo email
+    app.get('/student/email/:email', studentController.getStudentByEmail);
+
     //route thêm mới
-    app.post('/student', studentController.create);
+    app.post('/student', studentController.createNewStudent);
 
     //route update
-    app.put('/student', studentController.update);
+    app.put('/student/', studentController.updateStudent);
 
     //route xóa theo id
     app.delete('/student/:id', studentController.deleteByID);
