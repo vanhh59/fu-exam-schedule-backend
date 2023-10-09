@@ -1,0 +1,11 @@
+http://localhost:3000/hello?name=Viet anh&email=vanhcode@gmail.com&phone=0972743536
+http://localhost:3000/student/vanhh59
+
+cài đặt thêm gói thao tác dữ liệu CRUD
+- 2 gói là mssql msnodesqlv8
+cấu hình localhost qua sa
+
+tìm kiếm phân trang
+MODEL => thao tác dữ liệu
+VIEW => Hiển thị 
+CONTROLLER =>gửi và Nhận yêu cầu
