@@ -2,9 +2,9 @@ var sql = require('mssql/msnodesqlv8');
 
 // các thông tin kết nối csdl
 var config = {
-    server: "localhost",
-    user: "sa",
-    password: "12345",
+    server: "mssql-147764-0.cloudclusters.net,14397",
+    user: "swp391",
+    password: "Swp391@@@",
     database: "DB_EXAM",
     driver: "msnodesqlv8"
 };
