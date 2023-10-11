@@ -1,28 +1,28 @@
 module.exports = function (app) {
     var studentController = require('../controllers/student.controller');
 
-    //route lấy tất cả
+    //route get all
     app.get('/student', studentController.getListAll);
 
-    //route lấy theo id
+    //route get by id
     app.get('/student/:id', studentController.getListByID);
 
-    //route lấy theo email
+    //route get by email
     app.get('/student/email/:email', studentController.getStudentByEmail);
 
-    //route thêm mới
+    //route create new student
     app.post('/student', studentController.createNewStudent);
 
-    //route update
+    //route update student
     app.put('/student/', studentController.updateStudent);
 
-    //update status
+    //route update status
     app.put('/student/status', studentController.updateStatus);
 
-    //route xóa theo id
+    //route delete by id
     app.delete('/student/:id', studentController.deleteByID);
 
-    //route xóa tất cả
+    //route delete all
     app.delete('/student', studentController.deleteAll);
 }
 

@@ -142,11 +142,11 @@ exports.deleteByID = async function (req, res) {
         .input('ID', sql.VarChar, id)
         .query(sqlQuery)
         .then(function (data) {
-            res.send({ result: "Xóa thành công" });
+            res.send({ result: "Delete complete !" });
             console.log(data);
         })
         .catch(function (error) {
-            res.send({ result: "Xóa thất bại" });
+            res.send({ result: "Fail to delete !" });
             console.log(error);
         });
 }
@@ -157,11 +157,11 @@ exports.deleteAll = async function (req, res) {
     return await pool.request()
         .query(sqlQuery)
         .then(function (data) {
-            res.send({ result: "Xóa thành công" });
+            res.send({ result: "Delete complete !" });
             console.log(data);
         })
         .catch(function (error) {
-            res.send({ result: "Xóa thất bại" });
+            res.send({ result: "Fail to delete !" });
             console.log(error);
         });
 }
@@ -178,7 +178,7 @@ exports.search = async function (req, res) {
                     result: data.recordset
                 });
             } else {
-                res.status(404).send('Không tìm thấy sinh viên');
+                res.status(404).send('Not found student');
             }
         });
 }
@@ -194,7 +194,7 @@ exports.sort = async function (req, res) {
                     result: data.recordset
                 });
             } else {
-                res.status(404).send('Không tìm thấy sinh viên');
+                res.status(404).send('Not found student');
             }
         });
 }
