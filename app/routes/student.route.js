@@ -16,6 +16,9 @@ module.exports = function (app) {
     //route update
     app.put('/student/', studentController.updateStudent);
 
+    //update status
+    app.put('/student/status', studentController.updateStatus);
+
     //route xóa theo id
     app.delete('/student/:id', studentController.deleteByID);
 

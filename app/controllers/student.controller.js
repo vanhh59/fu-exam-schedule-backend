@@ -126,6 +126,11 @@ exports.updateStudent = async function (req, res) {
     });
 }
 
+exports.deleteByID = async function (req, res) {
+    student.delete(req.body.ID, req.body.status, function (err, data) {
+        res.send({ result: data, error: err });
+    });
+}
 
 // deleteByID bằng method PUT chuyển status bằng true
 // sửa thành xóa mềm dữ liệu
