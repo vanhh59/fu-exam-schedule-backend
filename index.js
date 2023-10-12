@@ -1,7 +1,9 @@
 var express = require('express');
 var app = express();
+app.use(express.json());
 
 const { conn, sql } = require('./connect');
+const port = process.env.PORT || 4000;
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -11,6 +13,7 @@ app.get('', function (req, res) {
 });
 
 require('./app/routes/student.route')(app);
+
 
 //mở server tại port 4000
 app.listen(4000, function () {
