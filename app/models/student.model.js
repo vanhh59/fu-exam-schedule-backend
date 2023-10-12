@@ -84,7 +84,7 @@ module.exports = class Student {
             });
     }
 
-    async delete(id, status, result) {
+    async deleteByUpdate(id, status, result) {
         var pool = await conn;
         var sqlQuery = "UPDATE Student SET status = @status WHERE ID = @ID";
         return await pool.request()
