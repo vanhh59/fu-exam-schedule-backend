@@ -1,52 +1,28 @@
-var { conn, sql } = require('../../connect');
-var Department = require('../models/department.model');
-var department = new Department();
+module.exports = function (app) {
+    var departmentController = require('../controllers/department.controller');
 
-exports.getListAll = async function (req, res) {
-    department.getAll(function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route get all
+    app.get('/department', departmentController.getListAll);
 
-exports.getDepartmentByExaminerID = async function (req, res) {
-    department.getDepartmentByExaminerID(req.params.examinerID, function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route get by examinerID
+    app.get('/department/:examinerID', departmentController.getDepartmentByExaminerID);
 
-exports.getByLocation = async function (req, res) {
-    department.getByLocation(req.params.location, function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route get by location
+    app.get('/department/:location', departmentController.getByLocation);
 
-exports.getByPhone = async function (req, res) {
-    department.getByPhone(req.params.phone, function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route get by phone
+    app.get('/department/:phone', departmentController.getByPhone);
 
-exports.getByName = async function (req, res) {
-    department.getByName(req.params.name, function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route get by name
+    app.get('/department/:name', departmentController.getByName);
 
-exports.createDepartment = async function (req, res) {
-    department.create(req.body, function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route create new department
+    app.post('/department', departmentController.createDepartment);
 
+    //route update department
+    app.put('/department/', departmentController.updateDepartment);
 
-exports.updateDepartment = async function (req, res) {
-    department.update(req.body.ID, req.body, function (err, data) {
-        res.send({ result: data, error: err });
-    });
-}
+    //route delete department
+    app.put('/department/delete', departmentController.deleteDepartment);
 
-exports.deleteDepartment = async function (req, res) {
-    department.deleteDepartment(req.body.name, req.body.status, function (err, data) {
-        res.send({ result: data, error: err });
-    });
 }
