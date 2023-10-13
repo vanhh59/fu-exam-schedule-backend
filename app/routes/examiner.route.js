@@ -5,7 +5,7 @@ module.exports = function (app) {
     app.get('/examiner', examinerController.getListAll);
 
     //route lấy theo id
-    app.get('/examiner/:id', examinerControllerr.getListByID);
+    app.get('/examiner/:id', examinerController.getListByID);
 
     //route lấy theo email
     app.get('/examiner/email/:email', examinerController.getExaminerByEmail);
@@ -17,9 +17,6 @@ module.exports = function (app) {
     app.put('/examiner/', examinerController.updateExaminer);
 
     //route xóa theo id
-    app.delete('/examiner/:id', examinerController.deleteByID);
-
-    //route xóa tất cả
-    app.delete('/examiner', examinerController.deleteAll);
+    app.delete('/examiner/:id', examinerController.deleteExaminer);
 }
 
