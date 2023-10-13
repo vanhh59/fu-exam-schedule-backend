@@ -14,9 +14,6 @@ module.exports = function (app) {
     app.put('/examSlot/', examSlotController.updateExamSlot);
 
     //route xóa theo id
-    app.delete('/examSlot/:id', examSlotController.deleteByID);
-
-    //route xóa tất cả
-    app.delete('/examSlot', examSlotController.deleteAll);
+    app.delete('/examSlot/:id', examSlotController.deleteExamSlot);
 }
 
