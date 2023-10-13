@@ -82,6 +82,20 @@ module.exports = class Examiner {
             });
     }
 
+    async deleteExaminer(id, status, result) {
+        var pool = await conn;
+        var sqlQuery = "UPDATE Examiner SET status = @status WHERE ID = @ID";
+        return await pool.request()
+            .input('ID', sql.VarChar, id)
+            .input('status', sql.Bit, false)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data);
+                }
+            });
+    }
 
 
 }
