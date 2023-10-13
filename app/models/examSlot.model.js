@@ -47,7 +47,7 @@ module.exports = class ExamSlot {
             });
     }
 
-    async update(id, examSlot, result) {
+    async updateExamSlot(id, examSlot, result) {
         var pool = await conn;
         var sqlQuery = "UPDATE ExamSlot SET startTime = @startTime, endTime = @endTime,\
             quantity = @quantity, status = @status WHERE ID = @ID";
@@ -58,6 +58,21 @@ module.exports = class ExamSlot {
             .input('endTime', sql.DateTime, examSlot.endTime)
             .input('quantity', sql.Int, examSlot.quantity)
             .input('status', sql.Int, examSlot.status)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data);
+                }
+            });
+    }
+
+    async deleteExamSlot(id, status, result) {
+        var pool = await conn;
+        var sqlQuery = "UPDATE ExamSlot SET status = @status WHERE ID = @ID";
+        return await pool.request()
+            .input('ID', sql.VarChar, id)
+            .input('status', sql.Bit, false)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
