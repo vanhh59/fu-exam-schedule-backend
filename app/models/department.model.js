@@ -74,13 +74,13 @@ module.exports = class Department {
         var sqlQuery = "INSERT INTO Department VALUES (@examinerID, @name, @examinerType, \
             @faculty, @location, @phone, @status)"
         return await pool.request()
-            .input('examinerID', sql.Char, Department.ID)
+            .input('examinerID', sql.Char, Department.examinerID)
             .input('name', sql.NVarChar, Department.name)
             .input('examinerType', sql.VarChar, Department.examinerType)
             .input('faculty', sql.Int, Department.faculty)
             .input('location', sql.NVarChar, Department.location)
             .input('phone', sql.NVarChar, Department.phone)
-            .input('status', sql.Int, Examiner.status)
+            .input('status', sql.Int, Department.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -90,13 +90,13 @@ module.exports = class Department {
             });
     }
 
-    async update(id, Examiner, result) {
+    async update(id, Department, result) {
         var pool = await conn;
         var sqlQuery = "UPDATE Department SET name = @name, examinerType = @examinerType,\
-        faculty = @faculty, location = @location,, phone = @phone\
-            status = @status WHERE ID = @ID";
+        faculty = @faculty, location = @location, phone = @phone\
+            status = @status WHERE name = @name";
         return await pool.request()
-            .input('examinerID', sql.Char, Department.ID)
+            .input('examinerID', sql.Char, Department.examinerID)
             .input('name', sql.NVarChar, Department.name)
             .input('examinerType', sql.VarChar, Department.examinerType)
             .input('faculty', sql.Int, Department.faculty)
@@ -112,6 +112,19 @@ module.exports = class Department {
             });
     }
 
-
-
+    async deleteDepartment(name, status, result) {
+        var pool = await conn;
+        var sqlQuery = "UPDATE Department SET status = @status WHERE name = @name";
+        return await pool.request()
+            .input('name', sql.VarChar, name)
+            .input('status', sql.Bit, false)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data);
+                }
+            });
+    }
 }
+
