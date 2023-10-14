@@ -13,6 +13,9 @@ app.get('', function (req, res) {
 });
 
 require('./app/routes/student.route')(app);
+require('./app/routes/examiner.route')(app);
+require('./app/routes/department.route')(app);
+require('./app/routes/examSlot.route')(app);
 
 
 //mở server tại port 4000
