@@ -17,7 +17,15 @@ require('./app/routes/examiner.route')(app);
 require('./app/routes/department.route')(app);
 require('./app/routes/examSlot.route')(app);
 require('./app/routes/subject.route')(app);
+<<<<<<< HEAD
 require('./app/routes/login.route')(app);
+=======
+require('./app/routes/classroom.route')(app);
+require('./app/routes/examSlot.route')(app);
+require('./app/routes/course.route')(app);
+
+
+>>>>>>> edfb3de4536aaaf1d97e21d8bbbf5269844b91aa
 
 
 
