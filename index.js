@@ -17,6 +17,7 @@ require('./app/routes/examiner.route')(app);
 require('./app/routes/department.route')(app);
 require('./app/routes/examSlot.route')(app);
 require('./app/routes/subject.route')(app);
+require('./app/routes/login.route')(app);
 
 
 
