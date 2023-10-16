@@ -1,12 +1,4 @@
-// CREATE TABLE Subject
-// (
-//     ID char(20) PRIMARY KEY,
-//     code nvarchar(50),
-//     name nvarchar(100),
-//     credit int,
-//     status bit
-// );
-module.exports = function app() {
+module.exports = function (app) {
     var subjectController = require('../controllers/subject.controller');
 
     //route get all

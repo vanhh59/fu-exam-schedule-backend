@@ -1,11 +1,3 @@
-// CREATE TABLE Subject
-// (
-//     ID char(20) PRIMARY KEY,
-//     code nvarchar(50),
-//     name nvarchar(100),
-//     credit int,
-//     status bit
-// );
 var { conn, sql } = require('../../connect');
 module.exports = class Subject {
     async getAll(result) {

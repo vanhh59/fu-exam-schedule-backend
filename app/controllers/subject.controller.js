@@ -1,14 +1,5 @@
-// CREATE TABLE Subject
-// (
-//     ID char(20) PRIMARY KEY,
-//     code nvarchar(50),
-//     name nvarchar(100),
-//     credit int,
-//     status bit
-// );
-const e = require('express');
 var { conn, sql } = require('../../connect');
-var Subject = require('../models/subject.model');
+var Subject = require('../models/department.model');
 var subject = new Subject();
 
 exports.getAll = async function (req, res) {
