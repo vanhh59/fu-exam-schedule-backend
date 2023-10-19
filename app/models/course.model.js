@@ -1,4 +1,6 @@
 var { conn, sql } = require('../../connect');
+const queries = require("../sql/Queries");
+
 module.exports = class course {
     async getAll(result) {
         var pool = await conn;
@@ -27,6 +29,19 @@ module.exports = class course {
             });
     }
 
+    async getCourseByID(courseId, result) {
+        var pool = await conn;
+        var sqlQuery = queries.getCourseByID;
+        return await pool.request()
+            .input('courseID', sql.Int, courseId)
+            .query(sqlQuery, function (error, data) {
+                if (data.recordset && data.recordset.length > 0) {
+                    result(null, data.recordset);
+                } else {
+                    result(true, null);
+                }
+            });
+    }
 
     async getByName(name, result) {
         var pool = await conn;
