@@ -50,3 +50,8 @@ exports.deleteDepartment = async function (req, res) {
         res.send({ result: data, error: err });
     });
 }
+exports.getAllDepartmentSalary = async function (req, res) {
+    department.getAllAvailableSlot(function (err, data) {
+        res.send({ result: data, error: err });
+    });
+};

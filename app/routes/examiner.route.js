@@ -10,6 +10,15 @@ module.exports = function (app) {
     //route lấy theo email
     app.get('/examiner/email/:email', examinerController.getExaminerByEmail);
 
+    //route lấy lương trog 1 semester
+    app.get('/examiner/income', examinerController.getIncome)
+
+    //route tất cả mọi người lấy lương trog 1 semester
+    app.get('/examiner/income/all', examinerController.getAllIncome)
+
+    //route tất cả mọi người lấy lương trog 1 semester
+    app.get('/examiner/slot-available/all', examinerController.getAllAvailableSlot)
+
     //route thêm mới
     app.post('/examiner', examinerController.createNewExaminer);
 

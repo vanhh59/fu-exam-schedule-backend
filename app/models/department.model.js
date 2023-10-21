@@ -1,4 +1,5 @@
 var { conn, sql } = require('../../connect');
+const queries = require('../sql/Queries');
 module.exports = class Department {
     async getAll(result) {
         var pool = await conn;
@@ -125,6 +126,20 @@ module.exports = class Department {
                     result(null, data);
                 }
             });
+    }
+
+    async getDepartmentSalary(result) {
+        let pool = await conn;
+        let sqlQuery = queries.getDepartmentSalary;
+        return await pool.request()
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data.recordset);
+                }
+            });
+
     }
 }
 

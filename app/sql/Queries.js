@@ -36,7 +36,66 @@ const queries = {
     VALUES (@examSlotID, @examBatchID, @startTime, @endTime, 1, 0);
     COMMIT`,
   register: `INSERT INTO Register(examinerID, examSlotID, status)
-    VALUES (@examinerID, @examSlotID, 0)`
+    VALUES (@examinerID, @examSlotID, 0)`,
+  income:
+    `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+    FROM Semester A 
+    LEFT JOIN Course B ON A.ID = B.semesterID
+    LEFT JOIN ExamBatch C ON C.courseID = B.ID
+    LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+    LEFT JOIN Register E ON E.examSlotID = D.ID
+    LEFT JOIN Examiner F ON F.ID = E.examinerID
+    WHERE E.status = 1 AND F.ID = @examinerID
+    GROUP BY F.ID ,F.name, A.code`,
+  getAllIncome:
+    `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+  FROM Semester A 
+  LEFT JOIN Course B ON A.ID = B.semesterID
+  LEFT JOIN ExamBatch C ON C.courseID = B.ID
+  LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+  LEFT JOIN Register E ON E.examSlotID = D.ID
+  LEFT JOIN Examiner F ON F.ID = E.examinerID
+  WHERE E.status = 1
+  GROUP BY F.ID ,F.name, A.code`,
+  getAvailableSlots:
+    `
+    SELECT E.ID, E.startTime, E.endTime, E.status
+    FROM ExamSlot E
+    LEFT JOIN Register R ON E.ID = R.examSlotID 
+    WHERE E.status = 1 
+    AND E.quantity > (
+    SELECT COUNT(R2.examSlotID)
+    FROM Register R2
+    WHERE R2.examSlotID = E.ID AND R2.status = 1
+    )
+    AND E.ID NOT IN(
+    SELECT examSlotID
+    FROM Register
+    WHERE examinerID = @examinerID AND status = 1
+    );
+  `,
+  getDepartmentSalary:
+    `
+    BEGIN TRANSACTION;
+    WITH ExaminerSalaries AS (
+      SELECT
+          G.location AS Department,
+          F.ID AS ExaminerID,
+          SUM(DATEDIFF(MINUTE, D.startTime, D.endTime)) / 60 * 100000 AS Salary
+      FROM Semester A
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      LEFT JOIN Register E ON E.examSlotID = D.ID
+      LEFT JOIN Examiner F ON F.ID = E.examinerID
+      LEFT JOIN Department G ON G.examinerID = F.ID
+      WHERE E.status = 1
+      GROUP BY G.location, F.ID)
+    SELECT Department, SUM(Salary) AS TotalSalary
+    FROM ExaminerSalaries
+    GROUP BY Department;
+    COMMIT
+  `
 };
 
 module.exports = queries;
