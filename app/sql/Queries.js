@@ -95,6 +95,21 @@ const queries = {
     FROM ExaminerSalaries
     GROUP BY Department;
     COMMIT
+  `,
+  getExamRoomInSemester:
+    `
+  SELECT C.ID AS 'CourseID', S.name as 'SubjectName', EB.code as 'examBatch_code',
+	ES.startTime, ES.endTime, EX.name as 'ExaminerName', SE.ID as 'SemesterID',
+	CR.ID as 'classRoomID'
+	FROM ExamRoom E
+	LEFT JOIN Examiner EX ON EX.ID = E.examinerID
+	LEFT JOIN Classroom CR ON CR.ID = E.classRoomID
+	LEFT JOIN Subject S ON E.subjectID = S.ID
+	LEFT JOIN ExamSlot ES ON ES.ID = E.examSlotID
+	LEFT JOIN Course C ON C.subjectID = S.ID
+	LEFT JOIN Semester SE ON SE.ID = C.semesterID
+	LEFT JOIN ExamBatch EB ON EB.courseID = C.ID
+	WHERE SE.code = @SemesterCode
   `
 };
 

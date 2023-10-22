@@ -1,8 +1,8 @@
-var { conn, sql } = require('../../connect');
+const { conn, sql } = require('../../connect');
 module.exports = class ExamBatch {
     async getAll(result) {
-        var pool = await conn;
-        var sqlQuery = "SELECT * FROM ExamBatch";
+        let pool = await conn;
+        let sqlQuery = "SELECT * FROM ExamBatch";
         return await pool.request()
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
@@ -13,8 +13,8 @@ module.exports = class ExamBatch {
             });
     }
     async getExambatchByCourseID(id, result) {
-        var pool = await conn;
-        var sqlQuery = "SELECT * FROM ExamBactch WHERE CourseID = @CourseID";
+        let pool = await conn;
+        let sqlQuery = "SELECT * FROM ExamBactch WHERE CourseID = @CourseID";
         return await pool.request()
             .input('examinerID', sql.Char, id)
             .query(sqlQuery, function (error, data) {
@@ -67,12 +67,12 @@ module.exports = class ExamBatch {
         code = @code, date = @date, location = @location\
             status = @status WHERE ID = @ID";
         return await pool.request()
-        .input('ID', sql.Char, exambatch.id)
-        .input('CourseID', sql.Char, exambatch.CourseID)
-        .input('code', sql.NVarChar, exambatch.code)
-        .input('date', sql.DateTime, exambatch.date)
-        .input('location', sql.NVarChar, exambatch.location)
-        .input('status', sql.Int, exambatch.status)
+            .input('ID', sql.Char, exambatch.id)
+            .input('CourseID', sql.Char, exambatch.CourseID)
+            .input('code', sql.NVarChar, exambatch.code)
+            .input('date', sql.DateTime, exambatch.date)
+            .input('location', sql.NVarChar, exambatch.location)
+            .input('status', sql.Int, exambatch.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);

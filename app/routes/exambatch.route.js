@@ -1,19 +1,19 @@
 module.exports = function (app) {
-    var examBatchController = require('.../controllers/exambatch.controller');
+    let examBatchController = require('.../controllers/exambatch.controller');
 
     //route lấy tất cả
 
-    app.get('/exambatch',examBatchController.getListAll);
+    app.get('/exambatch', examBatchController.getListAll);
     //route lấy theo id
 
-    app.get('/exambatch/:id',examBatchController.getListByID);
+    app.get('/exambatch/:id', examBatchController.getListByID);
 
-     //route get by CourseID
+    //route get by CourseID
 
     app.get('/exambatch/:CourseID', examBatchController.getExambatchByCourseID);
     //route lay theo code
 
-    app.get('/exambatch:code',examBatchController.getByCode);
+    app.get('/exambatch:code', examBatchController.getByCode);
 
     //route thêm mới
     app.post('/exambatch', examBatchController.createExambatch);

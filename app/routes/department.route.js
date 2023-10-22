@@ -11,7 +11,7 @@ module.exports = function (app) {
     app.get('/department/:location', departmentController.getByLocation);
 
     //route tất cả tổng salary của department
-    app.get('/examiner/slot-available/all', departmentController.getAllDepartmentSalary)
+    app.get('/department/slot-available/all', departmentController.getAllDepartmentSalary)
 
     //route get by phone
     app.get('/department/:phone', departmentController.getByPhone);

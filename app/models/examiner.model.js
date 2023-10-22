@@ -99,7 +99,6 @@ module.exports = class Examiner {
     }
 
     async getExaminerSalary(id, result) {
-
         let pool = await conn;
         let sqlQuery = queries.income;
         return await pool.request()

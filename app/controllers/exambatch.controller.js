@@ -1,6 +1,6 @@
-var { conn, sql } = require('../../connect');
-var  exambatch = require('../models/exambatch.model');
-var exambatch = new ExamBatch();
+let { conn, sql } = require('../../connect');
+let exambatch = require('../models/exambatch.model');
+let exambatch = new ExamBatch();
 
 exports.getListAll = async function (req, res) {
     exambatch.getAll(function (err, data) {
