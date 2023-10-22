@@ -31,25 +31,28 @@ exports.updateExaminer = async function (req, res) {
         res.send({ result: data, error: err });
     });
 }
+
 exports.deleteExaminer = async function (req, res) {
     student.deleteExaminer(req.body.ID, req.body.status, function (err, data) {
         res.send({ result: data, error: err });
     });
+}
 
-    exports.getIncome = async function (req, res) {
-        examiner.getExaminerSalary(req.body.ID, function (err, data) {
-            res.send({ result: data, error: err });
-        });
-    };
-    exports.getAllIncome = async function (req, res) {
-        examiner.getAllExaminerSalary(function (err, data) {
-            res.send({ result: data, error: err });
-        });
-    };
-    exports.getAllAvailableSlot = async function (req, res) {
-        examiner.getAllAvailableSlot(req.body.ID, function (err, data) {
-            res.send({ result: data, error: err });
-        });
-    };
+exports.getIncome = async function (req, res) {
+    console.log(req.params);
+    examiner.getExaminerSalary(req.params.id, function (err, data) {
+        res.send({ result: data, error: err });
+    });
+}
 
+exports.getAllIncome = async function (req, res) {
+    examiner.getAllExaminerSalary(function (err, data) {
+        res.send({ result: data, error: err });
+    });
+}
+
+exports.getAllAvailableSlot = async function (req, res) {
+    examiner.getAllAvailableSlot(req.body.ID, function (err, data) {
+        res.send({ result: data, error: err });
+    })
 }
