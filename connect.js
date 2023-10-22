@@ -5,8 +5,13 @@ var config = {
     server: "mssql-147764-0.cloudclusters.net,14397",
     user: "swp391",
     password: "Swp391@@@",
-    // database: "DB_EXAM_1", // Config cho DB dùng ở server
-    database: "DB_EXAM", // Config cho DB dùng ở local
+    database: "DB_EXAM_1", // Config cho DB dùng ở server
+
+    // server: ".",
+    // user: "sa",
+    // password: "123456",
+    // database: "DB_EXAM", // Config cho DB dùng ở local
+    
     driver: "msnodesqlv8"
 };
 

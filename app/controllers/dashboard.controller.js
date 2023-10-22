@@ -23,3 +23,23 @@ exports.register = async function (req, res) {
         res.send({ result: data, error: err });
     });
 }
+
+exports.fieldInfoExamSchedule = async function (req, res) {
+    dashboard.fieldInfoExamSchedule(req.body, function (err, data) {
+        res.send({ result: data, error: err });
+    });
+}
+
+exports.importExcelFile = async function (req, res) {
+  try {
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).send("No files were uploaded.");
+    }
+    dashboard.importExcelFile(req, function (err, data) {
+      res.send({ result: data, error: err });
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("An error occurred while processing the file.");
+  }
+};

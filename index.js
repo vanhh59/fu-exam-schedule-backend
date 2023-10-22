@@ -2,10 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require("cors");
+const fileUpload = require('express-fileupload');
 
-const passport = require("passport");
-const cookieSession = require("cookie-session");
-const passportStrategy = require("./passport");
 const bodyParser = require('body-parser');
 
 //Import các Routers 
@@ -13,6 +11,8 @@ const authRoute = require("./app/routes/auth.route");
 
 const app = express();
 
+app.use(cors())
+app.use(fileUpload());
 app.use(express.json());
 
 const { conn, sql } = require('./connect');
