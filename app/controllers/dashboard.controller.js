@@ -35,9 +35,37 @@ exports.importExcelFile = async function (req, res) {
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).send("No files were uploaded.");
     }
-    dashboard.importExcelFile(req, function (err, data) {
-      res.send({ result: data, error: err });
+
+    const importExcelResult = await new Promise((resolve, reject) => {
+      dashboard.importExcelFile(req, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
     });
+
+    if (importExcelResult) {
+      const updateQuantityResult = await new Promise((resolve, reject) => {
+        dashboard.updateQuantityExamSlot(req.body, (err, data) => {
+          if (err) {
+            console.log(err);
+            reject(err);
+          } else {
+            console.log(data);
+            resolve(data);
+          }
+        });
+      });
+
+      res.send({
+        importExcelResult,
+        updateQuantityResult,
+      });
+    } else {
+      res.status(400).send("Import failed. Update skipped.");
+    }
   } catch (error) {
     console.error("Error:", error);
     res.status(500).send("An error occurred while processing the file.");

@@ -63,7 +63,20 @@ const queries = {
     SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
     UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID
     COMMIT`,
-  importExcelFile: `INSERT INTO Stu_ExamRoom (studentID, examRoomID, status) VALUES (@studentID, @examRoomID, 1)`
+  importExcelFile: `INSERT INTO Stu_ExamRoom (studentID, examRoomID, status) VALUES (@studentID, @examRoomID, 1)`,
+  updateQuantityExamSlot: `BEGIN TRANSACTION;
+    DECLARE @quantity INT
+    DECLARE @capacity INT
+    DECLARE @totalStudent INT
+    SELECT @capacity = CR.capacity FROM ExamRoom as ER
+    INNER JOIN Classroom as CR ON ER.classRoomID = CR.ID
+    WHERE ER.ID = @examRoomID
+    SELECT @totalStudent = COUNT(SE.studentID) FROM Stu_ExamRoom as SE
+    WHERE SE.examRoomID = @examRoomID
+    SET @quantity = (@totalStudent / @capacity) + 5
+    SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
+    UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID
+    COMMIT`,
 };
 
 module.exports = queries;

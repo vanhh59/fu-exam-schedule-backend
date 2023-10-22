@@ -102,10 +102,26 @@ module.exports = class Dashboard {
                 };
                 await handleData();
             }
+            var sqlQuery = queries.importExcelFile;
             result(null, data = "Data inserted successfully.");
         } catch (error) {
             console.error("Error:", error);
             result(error, null);
         }
+    }
+
+    async updateQuantityExamSlot(data, result) {
+        var pool = await conn;
+        var sqlQuery = queries.updateQuantityExamSlot;
+        return await pool.request()
+            .input('examRoomID', sql.VarChar, data.examRoomID)
+            .input('examSlotID', sql.VarChar, data.examSlotID)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(error, null);
+                } else {
+                    result(null, data);
+                }
+        });
     }
 }

@@ -29,6 +29,7 @@
     "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
-    "tedious": "^16.4.1"
+    "tedious": "^16.4.1",
+    "util": "^0.12.5"
   }
 }
