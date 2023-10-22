@@ -102,7 +102,7 @@ module.exports = class Examiner {
         let pool = await conn;
         let sqlQuery = queries.income;
         return await pool.request()
-            .input('examinerID', sql.Char, id)
+            .input('examinerID', sql.VarChar, id)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -110,7 +110,6 @@ module.exports = class Examiner {
                     result(null, data.recordset);
                 }
             });
-
     }
 
     async getAllExaminerSalary(result) {

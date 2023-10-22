@@ -31,6 +31,7 @@ exports.updateExaminer = async function (req, res) {
         res.send({ result: data, error: err });
     });
 }
+
 exports.deleteExaminer = async function (req, res) {
     student.deleteExaminer(req.body.ID, req.body.status, function (err, data) {
         res.send({ result: data, error: err });

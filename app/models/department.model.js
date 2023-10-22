@@ -128,7 +128,7 @@ module.exports = class Department {
             });
     }
 
-    async getDepartmentSalary(result) {
+    async getAllAvailableSlot(result) {
         let pool = await conn;
         let sqlQuery = queries.getDepartmentSalary;
         return await pool.request()
@@ -139,7 +139,6 @@ module.exports = class Department {
                     result(null, data.recordset);
                 }
             });
-
     }
 }
 
