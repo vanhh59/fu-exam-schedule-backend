@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { conn, sql } = require('./connect');
 
 const express = require('express');
 const cors = require("cors");
@@ -6,16 +7,17 @@ const fileUpload = require('express-fileupload');
 
 const bodyParser = require('body-parser');
 
-//Import các Routers 
-const authRoute = require("./app/routes/auth.route");
-
 const app = express();
 
-app.use(cors())
+// Configure CORS to allow requests only from localhost:3000
+const corsOptions = {
+    origin: 'http://localhost:3000',
+};
+
+app.use(cors(corsOptions))
 app.use(fileUpload());
 app.use(express.json());
 
-const { conn, sql } = require('./connect');
 const port = process.env.PORT || 4000;
 
 app.use(bodyParser.json());

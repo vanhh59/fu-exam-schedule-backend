@@ -1,4 +1,5 @@
 var { conn, sql } = require('../../connect');
+const queries = require('../sql/Queries');
 module.exports = class Examiner {
     async getAll(result) {
         var pool = await conn;
@@ -97,5 +98,47 @@ module.exports = class Examiner {
             });
     }
 
+    async getExaminerSalary(id, result) {
+        let pool = await conn;
+        let sqlQuery = queries.income;
+        return await pool.request()
+            .input('examinerID', sql.VarChar, id)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data.recordset);
+                }
+            });
+    }
+
+    async getAllExaminerSalary(result) {
+        let pool = await conn;
+        let sqlQuery = queries.getAllIncome;
+        return await pool.request()
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data.recordset);
+                }
+            });
+
+    }
+
+    async getAllAvailableSlot(id, result) {
+        let pool = await conn;
+        let sqlQuery = queries.getAvailableSlots;
+        return await pool.request()
+            .input('examinerID', sql.Char, id)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data.recordset);
+                }
+            });
+
+    }
 
 }

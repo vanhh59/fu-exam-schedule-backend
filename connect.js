@@ -10,7 +10,7 @@ var config = {
     server: ".",
     user: "sa",
     password: "123456",
-    database: "DB_EXAM", // Config cho DB dùng ở local
+    database: "DB_EXAM_1", // Config cho DB dùng ở local
     
     driver: "msnodesqlv8"
 };

@@ -15,15 +15,15 @@ module.exports = class Dashboard {
                 }
             });
     }
-
+    // courseID, code, date,
     async createExamSchedule(data, result) {
         var pool = await conn;
         var sqlQuery = queries.createExamSlotAndExamBatch;
         return await pool.request()
-            .input('courseID', sql.Int, data.courseID)
-            .input('code', sql.NVarChar, data.code)
-            .input('startTime', sql.Date, data.startTime)
-            .input('endTime', sql.Date, data.endTime)
+            .input('courseID', sql.VarChar, data.courseID)
+            .input('code', sql.VarChar, data.code)
+            .input('startTime', sql.DateTime, data.startTime)
+            .input('endTime', sql.DateTime, data.endTime)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(error, null);
@@ -37,8 +37,8 @@ module.exports = class Dashboard {
         var pool = await conn;
         var sqlQuery = queries.register;
         return await pool.request()
-            .input('examinerID', sql.Char, data.examinerID)
-            .input('examSlotID', sql.Char, data.examSlotID)
+            .input('examinerID', sql.VarChar, data.examinerID)
+            .input('examSlotID', sql.VarChar, data.examSlotID)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(error, null);
@@ -51,11 +51,15 @@ module.exports = class Dashboard {
     async fieldInfoExamSchedule(data, result) {
         var pool = await conn;
         var sqlQuery = queries.fieldInfoExamSchedule;
+        console.log(data.examinerID);
+        console.log(data.examSlotID);
+        console.log(data.subjectID);
+        console.log(data.examinerID);
         return await pool.request()
-            .input('classRoomID', sql.Char, data.examinerID)
-            .input('examSlotID', sql.Char, data.examSlotID)
-            .input('subjectID', sql.Char, data.examSlotID)
-            .input('examinerID', sql.Char, data.examSlotID)
+            .input('classRoomID', sql.VarChar, data.classRoomID)
+            .input('examSlotID', sql.VarChar, data.examSlotID)
+            .input('subjectID', sql.VarChar, data.subjectID)
+            .input('examinerID', sql.VarChar, data.examinerID)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(error, null);

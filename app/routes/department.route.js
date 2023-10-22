@@ -10,6 +10,9 @@ module.exports = function (app) {
     //route get by location
     app.get('/department/:location', departmentController.getByLocation);
 
+    //route tất cả tổng salary của department
+    app.get('/department/slot-available/all', departmentController.getAllDepartmentSalary)
+
     //route get by phone
     app.get('/department/:phone', departmentController.getByPhone);
 
