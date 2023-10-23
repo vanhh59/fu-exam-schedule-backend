@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Excel File</title>
+</head>
+<body>
+    <form id="uploadForm">
+        <label for="examRoomID">Exam Room ID:</label>
+        <input type="text" name="examRoomID" id="examRoomID" required>
+        <br>
+        <label for="examSlotID">Exam Slot ID:</label>
+        <input type="text" name="examSlotID" id="examSlotID" required>
+        <br>
+        <label for="excelFile">Upload Excel File:</label>
+        <input type="file" name="excelFile" id="excelFile" accept=".xls, .xlsx" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <div id="responseMessage"></div>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch("http://localhost:4000/exam-room/import-excel", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseMessage = document.getElementById("responseMessage");
+                responseMessage.textContent = data.message;
+                responseMessage.style.display = "block";
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+    </script>
+</body>
+</html>

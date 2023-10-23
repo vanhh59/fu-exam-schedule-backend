@@ -22,7 +22,7 @@ const queries = {
     WHERE ES.status = 1
     ORDER BY ES.startTime DESC`,
   getCourseByID: `SELECT * FROM dbo.Course WHERE ID = @courseID`,
-  createExamSlotAndExamBatch:`BEGIN TRY
+  createExamSlotAndExamBatch: `BEGIN TRY
   BEGIN TRANSACTION;
   INSERT INTO ExamBatch (courseID, code, date, location, status) VALUES (@courseID, @code, @startTime, 'FPTU', 1);
   DECLARE @examBatchID INT;
@@ -86,8 +86,7 @@ const queries = {
     SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
     UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID
     COMMIT`,
-    income:
-    `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+  income: `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
     FROM Semester A 
     LEFT JOIN Course B ON A.ID = B.semesterID
     LEFT JOIN ExamBatch C ON C.courseID = B.ID
@@ -96,8 +95,7 @@ const queries = {
     LEFT JOIN Examiner F ON F.ID = E.examinerID
     WHERE E.status = 1 AND F.ID = @examinerID
     GROUP BY F.ID ,F.name, A.code`,
-  getAllIncome:
-    `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+  getAllIncome: `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
   FROM Semester A 
   LEFT JOIN Course B ON A.ID = B.semesterID
   LEFT JOIN ExamBatch C ON C.courseID = B.ID
@@ -106,8 +104,7 @@ const queries = {
   LEFT JOIN Examiner F ON F.ID = E.examinerID
   WHERE E.status = 1
   GROUP BY F.ID ,F.name, A.code`,
-  getAvailableSlots:
-    `
+  getAvailableSlots: `
     SELECT E.ID, E.startTime, E.endTime, E.status
     FROM ExamSlot E
     LEFT JOIN Register R ON E.ID = R.examSlotID 
@@ -123,26 +120,41 @@ const queries = {
     WHERE examinerID = @examinerID AND status = 1
     );
   `,
-    getDepartmentSalary:`
-    BEGIN TRANSACTION;
-    WITH ExaminerSalaries AS (
-      SELECT
-          G.location AS Department,
-          F.ID AS ExaminerID,
-          SUM(DATEDIFF(MINUTE, D.startTime, D.endTime)) / 60 * 100000 AS Salary
-      FROM Semester A
-      LEFT JOIN Course B ON A.ID = B.semesterID
-      LEFT JOIN ExamBatch C ON C.courseID = B.ID
-      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
-      LEFT JOIN Register E ON E.examSlotID = D.ID
-      LEFT JOIN Examiner F ON F.ID = E.examinerID
-      LEFT JOIN Department G ON G.examinerID = F.ID
-      WHERE E.status = 1
-      GROUP BY G.location, F.ID)
-    SELECT Department, SUM(Salary) AS TotalSalary
-    FROM ExaminerSalaries
-    GROUP BY Department;
-    COMMIT`
+  getDepartmentSalary: `
+  BEGIN TRANSACTION;
+  WITH ExaminerSalaries AS (
+    SELECT
+        G.location AS Department,
+        F.ID AS ExaminerID,
+        SUM(DATEDIFF(MINUTE, D.startTime, D.endTime)) / 60 * 100000 AS Salary
+    FROM Semester A
+    LEFT JOIN Course B ON A.ID = B.semesterID
+    LEFT JOIN ExamBatch C ON C.courseID = B.ID
+    LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+    LEFT JOIN Register E ON E.examSlotID = D.ID
+    LEFT JOIN Examiner F ON F.ID = E.examinerID
+    LEFT JOIN Department G ON G.examinerID = F.ID
+    WHERE E.status = 1
+    GROUP BY G.location, F.ID)
+  SELECT Department, SUM(Salary) AS TotalSalary
+  FROM ExaminerSalaries
+  GROUP BY Department;
+  COMMIT
+`,
+  getExamRoomInSemester: `
+  SELECT C.ID AS 'CourseID', S.name as 'SubjectName', EB.code as 'examBatch_code',
+	ES.startTime, ES.endTime, EX.name as 'ExaminerName', SE.ID as 'SemesterID',
+	CR.ID as 'classRoomID'
+	FROM ExamRoom E
+	LEFT JOIN Examiner EX ON EX.ID = E.examinerID
+	LEFT JOIN Classroom CR ON CR.ID = E.classRoomID
+	LEFT JOIN Subject S ON E.subjectID = S.ID
+	LEFT JOIN ExamSlot ES ON ES.ID = E.examSlotID
+	LEFT JOIN Course C ON C.subjectID = S.ID
+	LEFT JOIN Semester SE ON SE.ID = C.semesterID
+	LEFT JOIN ExamBatch EB ON EB.courseID = C.ID
+	WHERE SE.code = @SemesterCode
+  `,
 };
 
 module.exports = queries;

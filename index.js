@@ -34,7 +34,7 @@ require('./app/routes/examSlot.route')(app);
 require('./app/routes/subject.route')(app);
 require('./app/routes/login.route')(app);
 require('./app/routes/dashboard.route')(app);
-
+require('./app/routes/download.route')(app);
 
 //mở server tại port 4000
 app.listen(4000, function () {
