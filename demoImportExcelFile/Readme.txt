@@ -7,4 +7,4 @@ Chú ý: Nếu cột ExamSlot có quantity = 5, có nghĩa là Student Import ch
 Dẫn đến công thức tính quantity không hợp lý.
 (TotalStudent / capacity) + subExaminer
 Ví dụ: TotalStudent trong một Slot chỉ có 5, capacity = 25, subExaminer = 5
-=> (5 / 25) + 5 = 5.
+=> (5 / 25) + 5 = 5
