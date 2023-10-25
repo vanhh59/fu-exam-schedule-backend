@@ -1,23 +1,24 @@
 module.exports = function (app) {
     var courseController = require('../controllers/course.controller');
+    const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
+    
     //route lấy tất cả
-    app.get('/course', courseController.getListAll);
+    app.get('/course', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getListAll);
     //route lấy theo id
-    app.get('/course/:id', courseController.getListByID);
+    app.get('/course/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getListByID);
     
     //route lấy theo subjectID
-    app.get('/course/:subjectID', courseController.getCourseBySubjectID);
+    app.get('/course/:subjectID', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getCourseBySubjectID);
     //route lấy theo name
-    app.get('/course/:name', courseController.getByName);
+    app.get('/course/:name', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getByName);
 
     //route thêm mới
-    app.post('/course', courseController.createCourse);
+    app.post('/course', isAuthenticated, isAuthorized(["Admin"]), courseController.createCourse);
 
     //route update
-    app.put('/course/', courseController.updateCourse);
+    app.put('/course/', isAuthenticated, isAuthorized(["Admin"]), courseController.updateCourse);
 
     //route xóa theo id
-    app.delete('/course/:id', courseController.deleteCourseByID);
-
+    app.delete('/course/:id', isAuthenticated, isAuthorized(["Admin"]), courseController.deleteCourseByID);
 }
 

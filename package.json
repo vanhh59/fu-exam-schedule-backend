@@ -20,15 +20,21 @@
   "dependencies": {
     "cookie-session": "^2.0.0",
     "cors": "^2.8.5",
+    "cron": "^3.1.4",
     "dotenv": "^16.3.1",
     "exceljs": "^4.4.0",
     "express-fileupload": "^1.4.1",
+    "express-flash": "^0.0.2",
+    "express-session": "^1.17.3",
     "msnodesqlv8": "^4.1.0",
     "mssql": "^10.0.1",
     "node-gyp": "^9.4.0",
+    "nodemailer": "^6.9.7",
     "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "sequelize": "^6.33.0",
     "tedious": "^16.4.1",
     "util": "^0.12.5"
   }

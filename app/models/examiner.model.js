@@ -138,7 +138,20 @@ module.exports = class Examiner {
                     result(null, data.recordset);
                 }
             });
+    }
 
+    async getExaminerExamRooms(id, result) {
+        let pool = await conn;
+        let sqlQuery = queries.getExamRoomByExaminerID;
+        return await pool.request()
+            .input('examinerID', sql.VarChar, id)
+            .query(sqlQuery, function (error, data) {
+                if (error) {
+                    result(true, null);
+                } else {
+                    result(null, data.recordset);
+                }
+            });
     }
 
 }

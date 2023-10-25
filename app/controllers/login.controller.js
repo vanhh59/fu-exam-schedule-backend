@@ -3,7 +3,7 @@ var Login = require('../models/login.model');
 var login = new Login();
 
 exports.getRole = async function (req, res) {
-    login.getRole(function (err, data) {
+    login.getRole(req.body.email ,function (err, data) {
         if (data === 'Admin')
             res.redirect('/admin');
         else if (data === 'Testing Admin')

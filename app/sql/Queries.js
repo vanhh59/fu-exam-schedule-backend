@@ -155,6 +155,81 @@ const queries = {
 	LEFT JOIN ExamBatch EB ON EB.courseID = C.ID
 	WHERE SE.code = @SemesterCode
   `,
+  checkAuthenticate: `SELECT U.Role, U.userName FROM dbo.Users AS U
+  WHERE U.email = '@email'`,
+  checkAuthorize: `SELECT U.Role, U.userName FROM dbo.Users AS U
+  WHERE U.email = '@email' AND U.Role = '@role'`,
+  getAllUsers: `SELECT U.Role, U.userName, U.email FROM dbo.Users AS U`,
+  getUserByEmail: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.email = @email`,
+  getUserByID: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.ID = @ID`,
+  isConflictDuringStartEndTime: `
+  DECLARE @NewStartTime DATETIME = @startTime;
+  DECLARE @NewEndTime DATETIME = @endTime;
+  DECLARE @IsConflict BIT; -- This variable will store the result
+  IF EXISTS (
+      SELECT 1
+      FROM [dbo].[ExamSlot] AS ES
+      WHERE (
+          @NewStartTime >= ES.startTime AND @NewStartTime < ES.endTime
+      )
+      OR (
+          @NewEndTime > ES.startTime AND @NewEndTime <= ES.endTime
+      )
+      OR (
+          @NewStartTime <= ES.startTime AND @NewEndTime >= ES.endTime
+      )
+  )
+  BEGIN
+      SET @IsConflict = 1;
+  END
+  ELSE
+  BEGIN
+      SET @IsConflict = 0;
+  END
+  SELECT @IsConflict AS Result;`,
+  isConflictRule15Minutes: `DECLARE @NewStartTime DATETIME = @endTime;
+  DECLARE @IsConflict BIT;
+  IF EXISTS (
+      SELECT 1
+      FROM [dbo].[ExamSlot] AS ES
+      WHERE DATEDIFF(MINUTE, ES.endTime, @NewStartTime) BETWEEN 0 AND 15
+  )
+  BEGIN
+      SET @IsConflict = 1;
+  END
+  ELSE
+  BEGIN
+      SET @IsConflict = 0;
+  END
+  SELECT @IsConflict AS Result;`,
+  getStudentInRoom: `
+  SELECT S.name, S.email, ES.startTime, ES.ID 
+  FROM Student S 
+  LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
+  LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
+  LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
+  WHERE ES.ID = @examSlotID
+  `,
+  getExamSlotByStudentID: `
+  SELECT EX.name as 'Examiner name', ES.startTime, ES.endTime, SU.code, SEM.code
+	FROM Student S 
+	LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
+	LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
+	LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
+	LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+	LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+	LEFT JOIN Subject SU ON SU.ID = ER.subjectID
+	LEFT JOIN Course C ON C.subjectID = SU.ID
+	LEFT JOIN Semester SEM ON SEM.ID = C.semesterID
+	WHERE S.ID = @StudentId  AND SEM.code = @SemesterCode
+  `,
+  getExamRoomByExaminerID: `
+   SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+   FROM ExamSlot ES 
+   LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+   LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+   WHERE EX.ID = @examinerID
+  `,
 };
 
 module.exports = queries;

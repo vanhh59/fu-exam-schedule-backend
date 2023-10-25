@@ -1,47 +1,54 @@
-const router = require("express").Router();
-const passport = require("passport");
-require('dotenv').config();
+// authRouter.js
+const express = require('express');
+const User = require('../models/users.model'); // Import the authentication model
+const user = new User();
+const authRouter = express.Router();
 
-router.get("/login/success", (req, res) => {
-	if (req.user) {
-		res.status(200).json({
-			error: false,
-			message: "Successfully Loged In",
-			user: req.user,
-		});
-	} else {
-		res.status(403).json({ error: true, message: "Not Authorized" });
-	}
+// Define your routes for authentication
+authRouter.get('/login', (req, res) => {
+  // Create a login form in your view
+  res.redirect('https://fu-exam-schedule.vercel.app/');
+//   res.send('/login');
 });
 
-router.get("/", (req, res) => {
-	res.status(401).json({
-		error: true,
-		message: "Log in failure",
-	});
-});
+authRouter.post('/login', (req, res) => {
+  const { email } = req.body;
 
-// router.get("/google", passport.authenticate("google", ["profile", "email"]));
+  user.getUsersByEmail(email, (err, user) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
 
-// router.get("/google/callback",
-// 	passport.authenticate("google", {
-// 		successRedirect: process.env.CLIENT_URL,
-// 		failureRedirect: "/",
-// 	})
-// );
-
-router.get('/google', passport.authenticate('google', { scope: ['profile'] }));
-
-router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: process.env.CLIENT_URL }),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.redirect(process.env.CLIENT_URL);
+    if (user) {
+      // User found, store user information in the session
+      req.session.user = user;
+      res.status(200).send('Login successful');
+    } else {
+      res.status(401).send('Invalid username or password');
+    }
   });
-
-router.get("/logout", (req, res) => {
-	req.logout();
-	res.redirect(process.env.CLIENT_URL);
 });
 
-module.exports = router;
+authRouter.get('/logout', isAuthenticated, (req, res) => {
+  // Clear the session and log the user out
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    }
+    // res.redirect('/login');
+    res.status(200).send('Logout successful');
+  });
+});
+
+// Middleware to check if a user is authenticated
+function isAuthenticated(req, res, next) {
+	if (req.session?.user) {
+    return next();
+  }
+  return res.status(401).send('Unauthorized');
+}
+
+module.exports = authRouter;

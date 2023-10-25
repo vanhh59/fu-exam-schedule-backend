@@ -1,9 +1,14 @@
 require('dotenv').config();
+
+// IMPORT CONNECT DB
 const { conn, sql } = require('./connect');
 
+// IMPORT LIBRARY
 const express = require('express');
 const cors = require("cors");
 const fileUpload = require('express-fileupload');
+const session = require('express-session');
+const authRouter = require('./app/routes/auth.route');
 
 const bodyParser = require('body-parser');
 
@@ -14,19 +19,23 @@ const corsOptions = {
     origin: 'http://localhost:3000',
 };
 
+const port = process.env.PORT || 4000;
+
 app.use(cors(corsOptions))
 app.use(fileUpload());
 app.use(express.json());
-
-const port = process.env.PORT || 4000;
-
+app.use(session({
+  secret: 'local',
+  resave: false,
+  saveUninitialized: false,
+}));
 app.use(bodyParser.json());
+app.use('/auth', authRouter);
 
 app.get('', function (req, res) {
     res.send('<a href="https://fu-exam-schedule.vercel.app/">FU Exam Schedule</a>');
 });
 
-// routers
 require('./app/routes/student.route')(app);
 require('./app/routes/examiner.route')(app);
 require('./app/routes/department.route')(app);

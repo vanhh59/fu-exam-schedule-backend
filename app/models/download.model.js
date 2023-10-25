@@ -99,7 +99,6 @@ module.exports = class Download {
             console.log(result);
             return result;
         } else {
-            console.log("NULL");
             return null;
         }
 

@@ -1,10 +1,11 @@
 module.exports = function (app) {
     var dashboardController = require('../controllers/dashboard.controller');
+    const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route exam schedule
-    app.get('/exam-schedule', dashboardController.getExamSchedule)
-    app.post('/exam-schedule', dashboardController.createExamSchedule)
-    app.post('/register', dashboardController.register)
-    app.post('/exam-room', dashboardController.fieldInfoExamSchedule)
-    app.post('/exam-room/import-excel', dashboardController.importExcelFile)
+    app.get('/exam-schedule', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.getExamSchedule)
+    app.post('/exam-schedule', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.createExamSchedule)
+    app.post('/register', isAuthenticated, isAuthorized(['Testing Admin', 'Admin', 'Lecturer']), dashboardController.register)
+    app.post('/exam-room', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.fieldInfoExamSchedule)
+    app.post('/exam-room/import-excel', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.importExcelFile)
 }
