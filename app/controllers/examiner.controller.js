@@ -44,6 +44,12 @@ exports.getIncome = async function (req, res) {
     });
 }
 
+exports.getExamRoomByExaminerID = async function (req, res) {
+    examiner.getExaminerExamRooms(req.params.id, function (err, data) {
+        res.send({ result: data, error: err });
+    });
+}
+
 exports.getAllIncome = async function (req, res) {
     examiner.getAllExaminerSalary(function (err, data) {
         res.send({ result: data, error: err });

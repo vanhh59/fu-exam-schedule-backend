@@ -15,5 +15,6 @@ module.exports = function (app) {
 
     //route xóa theo id
     app.delete('/examSlot/:id', examSlotController.deleteExamSlot);
+
 }
 

@@ -155,6 +155,37 @@ const queries = {
 	LEFT JOIN ExamBatch EB ON EB.courseID = C.ID
 	WHERE SE.code = @SemesterCode
   `,
+  getStudentInRoom:
+    `
+  SELECT S.name, S.email, ES.startTime, ES.ID 
+  FROM Student S 
+  LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
+  LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
+  LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
+  WHERE ES.ID = @examSlotID
+  `,
+  getExamSlotByStudentID:
+    `
+  SELECT EX.name as 'Examiner name', ES.startTime, ES.endTime, SU.code, SEM.code
+	FROM Student S 
+	LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
+	LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
+	LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
+	LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+	LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+	LEFT JOIN Subject SU ON SU.ID = ER.subjectID
+	LEFT JOIN Course C ON C.subjectID = SU.ID
+	LEFT JOIN Semester SEM ON SEM.ID = C.semesterID
+	WHERE S.ID = @StudentId  AND SEM.code = @SemesterCode
+  `,
+  getExamRoomByExaminerID:
+    `
+   SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+   FROM ExamSlot ES 
+   LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+   LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+   WHERE EX.ID = @examinerID
+  `
 };
 
 module.exports = queries;

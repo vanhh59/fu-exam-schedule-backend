@@ -1,6 +1,8 @@
 var { conn, sql } = require('../../connect');
 const queries = require("../sql/Queries");
 const exceljs = require('exceljs');
+const CronJob = require('cron').CronJob;
+const nodemailer = require('nodemailer');
 
 module.exports = class Dashboard {
     async getAllExamSchedule(result) {
@@ -45,7 +47,7 @@ module.exports = class Dashboard {
                 } else {
                     result(null, data);
                 }
-        });
+            });
     }
 
     async fieldInfoExamSchedule(data, result) {
@@ -66,30 +68,30 @@ module.exports = class Dashboard {
                 } else {
                     result(null, data);
                 }
-        });
+            });
     }
 
     async importExcelFile(data, result) {
         try {
             var pool = await conn;
             const excelFile = data.files.excelFile;
-    
+
             const workbook = new exceljs.Workbook();
             await workbook.xlsx.load(excelFile.data);
-    
+
             const worksheet = workbook.getWorksheet(1);
-    
+
             for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
                 const row = worksheet.getRow(rowNumber);
                 const array = [];
-    
+
                 for (let i = 1; i <= 3; i++) {
                     array.push(row.getCell(i).value);
                 }
-    
+
                 console.log(array);
                 var sqlQuery = queries.importExcelFile;
-    
+
                 const handleData = async () => {
                     try {
                         const studentID = array[0];
@@ -126,6 +128,68 @@ module.exports = class Dashboard {
                 } else {
                     result(null, data);
                 }
-        });
+            });
+    }
+
+    async sendMail(id, result) {
+        const students = await this.findStudentInRoom(id);
+        if (students != null) {
+            //Get the date before exam start
+            let currentDay = new Date();
+            let targetDate = new Date(students[0].startTime.getTime());
+            //Check whether the targetDate is after or before currentDate.
+            targetDate.setDate(students[0].startTime.getDate() - 1);
+            if (currentDay > targetDate) {
+                return 1;
+            }
+            //email message option 
+            const mailOption = {
+                from: 'baoit2002@gmail.com',
+                to: '',
+                subject: 'Email from Node_App',
+                text: `There will be an exam at ${students[0].startTime}. Please go to fu-exam-schedule for more details.`
+            }
+            //email transport configuration
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'baoit2002@gmail.com',
+                    pass: 'ztij tdmu lmup ecgl',
+                }
+            });
+            //Schedule a date
+            let job = new CronJob(targetDate,
+                function () {
+                    for (let value of students) {
+                        mailOption.to = value.email;
+                        transporter.sendMail(mailOption, (error, info) => {
+                            if (error) {
+                                return 3;
+                            } else {
+                                console.log('email send: ' + info.response);
+                            }
+                        });
+                    }
+                },
+                null, /* This function is executed when the job stops */
+                true, /* start the job right now */
+                'Asia/Ho_Chi_Minh' /* Set time zone */
+            );
+        } else {
+            return 2;
+        }
+
+    }
+
+    async findStudentInRoom(id) {
+        let pool = await conn;
+        let sqlQueryStudentInRoom = queries.getStudentInRoom;
+        const result = await pool.request().input('examSlotID', sql.VarChar, id).query(sqlQueryStudentInRoom);
+        if (result.recordset && result.recordset.length > 0) {
+            return result;
+        } else {
+            return null;
+        }
+
     }
 }

@@ -38,6 +38,12 @@ exports.deleteStudent = async function (req, res) {
     });
 }
 
+exports.getExamSlotByStudentId = async function (req, res) {
+    student.getExamSlotByStudentId(req.body, function (err, data) {
+        res.send({ result: data, error: err });
+    });
+}
+
 
 
 

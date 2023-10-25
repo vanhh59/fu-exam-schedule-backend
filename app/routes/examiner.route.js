@@ -13,6 +13,9 @@ module.exports = function (app) {
     //route lấy lương trog 1 semester
     app.get('/examiner/income/:id', examinerController.getIncome)
 
+    //route lấy thông tin exam slot của giáo viên cụ thể
+    app.get('/examiner/exam-rooms/:id', examinerController.getExamRoomByExaminerID)
+
     //route tất cả mọi người lấy lương trog 1 semester
     app.get('/examiner/incomeAll/all', examinerController.getAllIncome)
 

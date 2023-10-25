@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    var studentController = require('../controllers/student.controller');
+    let studentController = require('../controllers/student.controller');
 
     //route get all
     app.get('/student', studentController.getListAll);
@@ -9,6 +9,9 @@ module.exports = function (app) {
 
     //route get by email
     app.get('/student/email/:email', studentController.getStudentByEmail);
+
+    //View all exam slot belong to the user
+    app.get('/student/viewExamSlot', studentController.getExamSlotByStudentId);
 
     //route create new student
     app.post('/student', studentController.createStudent);
