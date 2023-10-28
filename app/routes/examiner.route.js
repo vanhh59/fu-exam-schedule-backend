@@ -11,10 +11,10 @@ module.exports = function (app) {
     app.get('/examiner/email/:email', examinerController.getExaminerByEmail);
 
     //route lấy lương trog 1 semester
-    app.get('/examiner/income/', examinerController.getIncome)
+    app.get('/examiner/income/specify/', examinerController.getIncome)
 
     //route lấy thông tin exam slot của giáo viên cụ thể
-    app.get('/examiner/exam-rooms/:id', examinerController.getExamRoomByExaminerID)
+    app.get('/examiner/exam-rooms/all', examinerController.getExamRoomByExaminerID)
 
     //route tất cả mọi người lấy lương trog 1 semester
     app.get('/examiner/incomeAll/all', examinerController.getAllIncome)

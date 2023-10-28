@@ -39,25 +39,45 @@ exports.deleteExaminer = async function (req, res) {
 }
 
 exports.getIncome = async function (req, res) {
-    examiner.getExaminerSalary(req.body, function (err, data) {
-        res.send({ result: data, error: err });
+    examiner.getExaminerSalary(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
     });
 }
 
 exports.getExamRoomByExaminerID = async function (req, res) {
-    examiner.getExaminerExamRooms(req.params.id, function (err, data) {
-        res.send({ result: data, error: err });
+
+    examiner.getExaminerExamRooms(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+
     });
 }
 
 exports.getAllIncome = async function (req, res) {
-    examiner.getAllExaminerSalary(req.body, function (err, data) {
-        res.send({ result: data, error: err });
+    examiner.getAllExaminerSalary(req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+
     });
 }
 
 exports.getAllAvailableSlot = async function (req, res) {
-    examiner.getAllAvailableSlot(req.body, function (err, data) {
-        res.send({ result: data, error: err });
+    examiner.getAllAvailableSlot(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+
     })
 }

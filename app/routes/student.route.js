@@ -10,8 +10,8 @@ module.exports = function (app) {
     //route get by email
     app.get('/student/email/:email', studentController.getStudentByEmail);
 
-    //View all exam slot belong to the user
-    app.get('/student/viewExamSlot', studentController.getExamSlotByStudentId);
+    //View all exam slot belong to the student
+    app.get('/student/viewExamSlot/all', studentController.getExamSlotByStudentId);
 
     //route create new student
     app.post('/student', studentController.createStudent);

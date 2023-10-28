@@ -98,12 +98,12 @@ module.exports = class Examiner {
             });
     }
 
-    async getExaminerSalary(data, result) {
+    async getExaminerSalary(examinerID, SemesterCode, result) {
         let pool = await conn;
         let sqlQuery = queries.income;
         return await pool.request()
-            .input('examinerID', sql.VarChar, data.examinerID)
-            .input('SemesterCode', sql.VarChar, data.SemesterCode)
+            .input('examinerID', sql.VarChar, examinerID)
+            .input('SemesterCode', sql.VarChar, SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -113,11 +113,12 @@ module.exports = class Examiner {
             });
     }
 
-    async getExaminerExamRooms(id, result) {
+    async getExaminerExamRooms(examinerID, SemesterCode, result) {
         let pool = await conn;
         let sqlQuery = queries.getExamRoomByExaminerID;
         return await pool.request()
-            .input('examinerID', sql.VarChar, id)
+            .input('examinerID', sql.VarChar, examinerID)
+            .input('SemesterCode', sql.VarChar, SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -131,7 +132,7 @@ module.exports = class Examiner {
         let pool = await conn;
         let sqlQuery = queries.getAllIncome;
         return await pool.request()
-            .input('SemesterCode', sql.VarChar, data.SemesterCode)
+            .input('SemesterCode', sql.VarChar, data)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -142,12 +143,12 @@ module.exports = class Examiner {
 
     }
 
-    async getAllAvailableSlot(data, result) {
+    async getAllAvailableSlot(examinerID, SemesterCode, result) {
         let pool = await conn;
         let sqlQuery = queries.getAvailableSlots2;
         return await pool.request()
-            .input('examinerID', sql.VarChar, data.examinerID)
-            .input('SemesterCode', sql.VarChar, data.SemesterCode)
+            .input('examinerID', sql.VarChar, examinerID)
+            .input('SemesterCode', sql.VarChar, SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);

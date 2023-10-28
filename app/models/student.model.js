@@ -15,12 +15,14 @@ module.exports = class Student {
             });
     }
 
-    async getExamSlotByStudentId(data, result) {
+    async getExamSlotByStudentId(stuID, SemesterCode, result) {
+        console.log(stuID);
+        console.log(SemesterCode);
         let pool = await conn;
         let sqlQuery = queries.getExamSlotByStudentID;
         return await pool.request()
-            .input('StudentId', sql.VarChar, data.StudentId)
-            .input('SemesterCode', sql.VarChar, data.SemesterCode)
+            .input('StudentId', sql.VarChar, stuID)
+            .input('SemesterCode', sql.VarChar, SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
@@ -81,23 +83,30 @@ module.exports = class Student {
 
     async update(id, student, result) {
         let pool = await conn;
-        let updateFields = Object.keys(student)
-            .filter(key => student[key] !== null)
-            .map(key => `${key} = @${key}`)
-            .join(', ');
+        let sqlQuery = "UPDATE Student SET";
 
-        let sqlQuery = `UPDATE Student SET ${updateFields} WHERE ID = @ID`;
+        // Check and construct the SQL query and parameters based on the provided student data
+        if (student.name !== null && student.name !== undefined) {
+            sqlQuery += ` name = '${student.name}',`;
+        }
+        if (student.email !== null && student.email !== undefined) {
+            sqlQuery += ` email = '${student.email}',`;
+        }
+        if (student.dateOfBirth !== null && student.dateOfBirth !== undefined) {
+            sqlQuery += ` dateOfBirth = '${student.dateOfBirth}',`;
+        }
+        if (student.major !== null && student.major !== undefined) {
+            sqlQuery += ` major = '${student.major}',`;
+        }
+        if (student.yearOfStudy !== null && student.yearOfStudy !== undefined) {
+            sqlQuery += ` yearOfStudy = '${student.yearOfStudy}',`;
+        }
 
-        let params = Object.keys(student)
-            .filter(key => student[key] !== null)
-            .reduce((acc, key) => {
-                acc[key] = sql[key === 'yearOfStudy' ? 'Int' : 'VarChar'](student[key]);
-                return acc;
-            }, {});
-
+        // Remove the trailing comma and add the WHERE condition
+        sqlQuery = sqlQuery.slice(0, -1) + " WHERE ID = @ID";
+        console.log("sql Query value ", sqlQuery);
         return await pool.request()
             .input('ID', sql.VarChar, id)
-            .input(params) // Bind all the parameters
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);

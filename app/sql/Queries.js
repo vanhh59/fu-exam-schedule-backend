@@ -205,11 +205,14 @@ const queries = {
   `,
   getExamRoomByExaminerID:
     `
-   SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
-   FROM ExamSlot ES 
-   LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-   LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-   WHERE EX.ID = @examinerID
+    SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+    FROM ExamSlot ES 
+    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    LEFT JOIN Course C ON C.ID = EB.courseID
+    LEFT JOIN Semester SE ON SE.ID = C.semesterID
+    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode 
   `
 };
 
