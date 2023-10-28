@@ -39,7 +39,7 @@ exports.deleteExaminer = async function (req, res) {
 }
 
 exports.getIncome = async function (req, res) {
-    examiner.getExaminerSalary(req.params.id, function (err, data) {
+    examiner.getExaminerSalary(req.body, function (err, data) {
         res.send({ result: data, error: err });
     });
 }
@@ -51,13 +51,13 @@ exports.getExamRoomByExaminerID = async function (req, res) {
 }
 
 exports.getAllIncome = async function (req, res) {
-    examiner.getAllExaminerSalary(function (err, data) {
+    examiner.getAllExaminerSalary(req.body, function (err, data) {
         res.send({ result: data, error: err });
     });
 }
 
 exports.getAllAvailableSlot = async function (req, res) {
-    examiner.getAllAvailableSlot(req.body.ID, function (err, data) {
+    examiner.getAllAvailableSlot(req.body, function (err, data) {
         res.send({ result: data, error: err });
     })
 }

@@ -98,11 +98,12 @@ module.exports = class Examiner {
             });
     }
 
-    async getExaminerSalary(id, result) {
+    async getExaminerSalary(data, result) {
         let pool = await conn;
         let sqlQuery = queries.income;
         return await pool.request()
-            .input('examinerID', sql.VarChar, id)
+            .input('examinerID', sql.VarChar, data.examinerID)
+            .input('SemesterCode', sql.VarChar, data.SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -126,10 +127,11 @@ module.exports = class Examiner {
             });
     }
 
-    async getAllExaminerSalary(result) {
+    async getAllExaminerSalary(data, result) {
         let pool = await conn;
         let sqlQuery = queries.getAllIncome;
         return await pool.request()
+            .input('SemesterCode', sql.VarChar, data.SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
@@ -140,11 +142,12 @@ module.exports = class Examiner {
 
     }
 
-    async getAllAvailableSlot(id, result) {
+    async getAllAvailableSlot(data, result) {
         let pool = await conn;
-        let sqlQuery = queries.getAvailableSlots;
+        let sqlQuery = queries.getAvailableSlots2;
         return await pool.request()
-            .input('examinerID', sql.Char, id)
+            .input('examinerID', sql.VarChar, data.examinerID)
+            .input('SemesterCode', sql.VarChar, data.SemesterCode)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
