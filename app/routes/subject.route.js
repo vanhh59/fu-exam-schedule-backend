@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    var subjectController = require('../controllers/subject.controller');
+    let subjectController = require('../controllers/subject.controller');
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route get all

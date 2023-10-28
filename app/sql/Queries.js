@@ -86,24 +86,28 @@ const queries = {
     SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
     UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID
     COMMIT`,
-  income: `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
-    FROM Semester A 
-    LEFT JOIN Course B ON A.ID = B.semesterID
-    LEFT JOIN ExamBatch C ON C.courseID = B.ID
-    LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
-    LEFT JOIN Register E ON E.examSlotID = D.ID
-    LEFT JOIN Examiner F ON F.ID = E.examinerID
-    WHERE E.status = 1 AND F.ID = @examinerID
-    GROUP BY F.ID ,F.name, A.code`,
-  getAllIncome: `SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
-  FROM Semester A 
-  LEFT JOIN Course B ON A.ID = B.semesterID
-  LEFT JOIN ExamBatch C ON C.courseID = B.ID
-  LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
-  LEFT JOIN Register E ON E.examSlotID = D.ID
-  LEFT JOIN Examiner F ON F.ID = E.examinerID
-  WHERE E.status = 1
-  GROUP BY F.ID ,F.name, A.code`,
+  income: `
+    SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      FROM Semester A 
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      LEFT JOIN Register E ON E.examSlotID = D.ID
+      LEFT JOIN Examiner F ON F.ID = E.examinerID
+      WHERE E.status = 1 AND F.ID = @examinerID AND A.code = @SemesterCode
+      GROUP BY F.ID ,F.name, A.code
+      `,
+  getAllIncome: `
+      SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      FROM Semester A 
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      LEFT JOIN Register E ON E.examSlotID = D.ID
+      LEFT JOIN Examiner F ON F.ID = E.examinerID
+      WHERE E.status = 1 AND A.code = @SemesterCode
+      GROUP BY F.ID ,F.name, A.code
+      `,
   getAvailableSlots: `
     SELECT E.ID, E.startTime, E.endTime, E.status
     FROM ExamSlot E
@@ -119,6 +123,27 @@ const queries = {
     FROM Register
     WHERE examinerID = @examinerID AND status = 1
     );
+  `,
+  getAvailableSlots2:
+    `
+  SELECT E.ID, E.startTime, E.endTime, E.status, S.code
+  FROM ExamSlot E
+  LEFT JOIN Register R ON E.ID = R.examSlotID 
+	LEFT JOIN ExamBatch EB ON EB.ID = E.examBatchID
+	LEFT JOIN Course C ON C.ID = EB.courseID
+	LEFT JOIN Semester S ON S.ID = C.semesterID
+    WHERE E.status = 1 
+    AND E.quantity > (
+    SELECT COUNT(R2.examSlotID)
+    FROM Register R2
+    WHERE R2.examSlotID = E.ID AND R2.status = 1
+    )
+    AND E.ID NOT IN(
+    SELECT examSlotID
+    FROM Register
+    WHERE examinerID = @examinerID AND status = 1
+    )
+	AND S.code = @SemesterCode;
   `,
   getDepartmentSalary: `
   BEGIN TRANSACTION;
@@ -202,7 +227,8 @@ const queries = {
       SET @IsConflict = 0;
   END
   SELECT @IsConflict AS Result;`,
-  getStudentInRoom: `
+  getStudentInRoom:
+    `
   SELECT S.name, S.email, ES.startTime, ES.ID 
   FROM Student S 
   LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
@@ -210,7 +236,8 @@ const queries = {
   LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
   WHERE ES.ID = @examSlotID
   `,
-  getExamSlotByStudentID: `
+  getExamSlotByStudentID:
+    `
   SELECT EX.name as 'Examiner name', ES.startTime, ES.endTime, SU.code, SEM.code
 	FROM Student S 
 	LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
@@ -223,13 +250,17 @@ const queries = {
 	LEFT JOIN Semester SEM ON SEM.ID = C.semesterID
 	WHERE S.ID = @StudentId  AND SEM.code = @SemesterCode
   `,
-  getExamRoomByExaminerID: `
-   SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
-   FROM ExamSlot ES 
-   LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-   LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-   WHERE EX.ID = @examinerID
-  `,
+  getExamRoomByExaminerID:
+    `
+    SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+    FROM ExamSlot ES 
+    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    LEFT JOIN Course C ON C.ID = EB.courseID
+    LEFT JOIN Semester SE ON SE.ID = C.semesterID
+    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode 
+  `
 };
 
 module.exports = queries;

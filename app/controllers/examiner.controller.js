@@ -52,6 +52,18 @@ exports.updateExaminer = async function (req, res) {
     });
 }
 
+exports.getExamRoomByExaminerID = async function (req, res) {
+
+    examiner.getExaminerExamRooms(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+
+    });
+}
+
 exports.deleteExaminer = async function (req, res) {
     student.deleteExaminer(req.body.ID, req.body.status, function (err, data) {
         if(err) {
@@ -63,8 +75,8 @@ exports.deleteExaminer = async function (req, res) {
 }
 
 exports.getIncome = async function (req, res) {
-    examiner.getExaminerSalary(req.params.id, function (err, data) {
-        if(err) {
+    examiner.getExaminerSalary(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -73,18 +85,23 @@ exports.getIncome = async function (req, res) {
 }
 
 exports.getAllIncome = async function (req, res) {
-    examiner.getAllExaminerSalary(function (err, data) {
-        if(err) {
+    examiner.getAllExaminerSalary(req.query.SemesterCode, function (err, data) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
         }
+
     });
 }
 
-exports.getExamRoomByExaminerID = async function (req, res) {
-    examiner.getExaminerExamRooms(req.params.id, function (err, data) {
-        res.send({ result: data, error: err });
+exports.getIncome = async function (req, res) {
+    examiner.getExaminerSalary(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
     });
 }
 

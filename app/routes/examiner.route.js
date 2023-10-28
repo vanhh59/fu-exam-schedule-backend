@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    var examinerController = require('../controllers/examiner.controller');
+    let examinerController = require('../controllers/examiner.controller');
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route lấy tất cả
@@ -12,10 +12,10 @@ module.exports = function (app) {
     app.get('/examiner/email/:email', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getExaminerByEmail);
 
     //route lấy lương trog 1 semester
-    app.get('/examiner/income/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getIncome)
+    app.get('/examiner/income/specify/', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getIncome)
 
     //route lấy thông tin exam slot của giáo viên cụ thể
-    app.get('/examiner/exam-rooms/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getExamRoomByExaminerID)
+    app.get('/examiner/exam-rooms/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getExamRoomByExaminerID)
 
     //route tất cả mọi người lấy lương trog 1 semester
     app.get('/examiner/incomeAll/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examinerController.getAllIncome)

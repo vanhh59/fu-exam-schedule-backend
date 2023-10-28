@@ -2,7 +2,7 @@ var { conn, sql } = require('../../connect');
 
 // Import services DAO
 var Dashboard = require('../models/dashboard.model');
-const queries = require('../sql/Queries')
+const queries = require('../sql/Queries');
 
 var dashboard = new Dashboard();
 

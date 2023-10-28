@@ -11,11 +11,15 @@ exports.getXlsx = async function (req, res) {
         "Content-Disposition",
         "attachment; filename=" + "Salaries.xlsx"
     );
-    let workbook = await download.downloadXlsx();
-    return workbook.xlsx.write(res).then(function () {
-        res.status(200).end();
-    });
+    if (workbook != null) {
+        return workbook.xlsx.write(res).then(function () {
+            res.status(200).end();
+        });
+    } else {
+        return res.status(400).send("No files were found.");
+    }
 }
+
 exports.getExamRoomsXlsx = async function (req, res) {
     res.setHeader(
         "Content-Type",
@@ -25,7 +29,7 @@ exports.getExamRoomsXlsx = async function (req, res) {
         "Content-Disposition",
         "attachment; filename=" + "Salaries.xlsx"
     );
-    let workbook = download.downloadExamRoomXlsx(req.params.id);
+    download.downloadExamRoomXlsx(req.params.id);
     if (workbook != null) {
         return workbook.xlsx.write(res).then(function () {
             res.status(200).end();

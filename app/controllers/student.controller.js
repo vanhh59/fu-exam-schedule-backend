@@ -44,13 +44,13 @@ exports.createStudent = async function (req, res) {
 
 exports.updateStudent = async function (req, res) {
   student.update(req.body.ID, req.body, function (err, data) {
-    if (err) {
-      res.status(400).send({ result: data, error: err });
-    } else {
-      res.status(200).send({ result: data, error: err });
-    }
+      if (err) {
+          res.status(400).send({ result: data, error: "Failed to update a user" });
+      } else {
+          res.status(200).send({ result: "Student updated successfully", error: err });
+      }
   });
-};
+}
 
 exports.deleteStudent = async function (req, res) {
   student.deleteByUpdate(req.body.ID, req.body.status, function (err, data) {
@@ -63,7 +63,11 @@ exports.deleteStudent = async function (req, res) {
 };
 
 exports.getExamSlotByStudentId = async function (req, res) {
-    student.getExamSlotByStudentId(req.body, function (err, data) {
-        res.send({ result: data, error: err });
-    });
+  student.getExamSlotByStudentId(req.query.StudentId, req.query.SemesterCode, function (err, data) {
+      if (err) {
+          res.status(400).send({ result: data, error: "Not found any exam slot" });
+      } else {
+          res.status(200).send({ result: data, error: err });
+      }
+  });
 }
