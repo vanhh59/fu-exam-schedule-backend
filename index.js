@@ -25,9 +25,9 @@ app.use(cors(corsOptions))
 app.use(fileUpload());
 app.use(express.json());
 app.use(session({
-  secret: 'local',
-  resave: false,
-  saveUninitialized: false,
+    secret: 'local',
+    resave: false,
+    saveUninitialized: false,
 }));
 app.use(bodyParser.json());
 app.use('/auth', authRouter);
@@ -37,6 +37,7 @@ app.get('', function (req, res) {
 });
 
 require('./app/routes/student.route')(app);
+require('./app/routes/semester.route')(app);
 require('./app/routes/examiner.route')(app);
 require('./app/routes/department.route')(app);
 require('./app/routes/examSlot.route')(app);

@@ -11,6 +11,7 @@ exports.getXlsx = async function (req, res) {
         "Content-Disposition",
         "attachment; filename=" + "Salaries.xlsx"
     );
+    const workbook = download.downloadXlsx();
     if (workbook != null) {
         return workbook.xlsx.write(res).then(function () {
             res.status(200).end();

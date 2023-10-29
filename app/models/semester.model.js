@@ -13,8 +13,8 @@ var { conn, sql } = require('../../connect');
 
 module.exports = class Semester {
     async getAll(result) {
-        var pool = await conn;
-        var sqlQuery = "SELECT * FROM Semester";
+        let pool = await conn;
+        let sqlQuery = "SELECT * FROM Semester";
         return await pool.request()
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
@@ -40,8 +40,8 @@ module.exports = class Semester {
     }
 
     async create(newSemester, result) {
-        var pool = await conn;
-        var sqlQuery = "INSERT INTO Semester (ID, code, name, year, startDate, endDate, status) VALUES (@ID, @code, @name, @year, @startDate, @endDate, @status)";
+        let pool = await conn;
+        let sqlQuery = "INSERT INTO Semester (ID, code, name, year, startDate, endDate, status) VALUES (@ID, @code, @name, @year, @startDate, @endDate, @status)";
         return await pool.request()
             .input('ID', sql.VarChar, newSemester.ID)
             .input('code', sql.NVarChar, newSemester.code)
@@ -60,8 +60,8 @@ module.exports = class Semester {
     }
 
     async update(id, semester, result) {
-        var pool = await conn;
-        var sqlQuery = "UPDATE Semester SET code = @code, name = @name, year = @year, startDate = @startDate, endDate = @endDate, status = @status WHERE ID = @ID";
+        let pool = await conn;
+        let sqlQuery = "UPDATE Semester SET code = @code, name = @name, year = @year, startDate = @startDate, endDate = @endDate, status = @status WHERE ID = @ID";
         return await pool.request()
             .input('ID', sql.VarChar, id)
             .input('code', sql.NVarChar, semester.code)
@@ -80,8 +80,8 @@ module.exports = class Semester {
     }
 
     async deleteByUpdate(id, result) {
-        var pool = await conn;
-        var sqlQuery = "UPDATE Semester SET status = 0 WHERE ID = @ID";
+        let pool = await conn;
+        let sqlQuery = "UPDATE Semester SET status = 0 WHERE ID = @ID";
         return await pool.request()
             .input('ID', sql.VarChar, id)
             .query(sqlQuery, function (error, data) {

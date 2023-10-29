@@ -58,7 +58,7 @@ module.exports = class Download {
     }
 
     async downloadExamRoomXlsx(id) {
-        let ExamRooms = this.findExaminersSalary(id);
+        let ExamRooms = this.findExamRoomsSalary(id);
         if (ExamRooms != null) {
             const workbook = new excel.Workbook();
             //Tạo ra excel worksheet

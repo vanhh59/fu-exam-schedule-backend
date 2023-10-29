@@ -12,7 +12,7 @@ module.exports = function (app) {
     app.get('/student/email/:email', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), studentController.getStudentByEmail);
 
     //View all exam slot belong to the user
-    app.get('/student/viewExamSlot/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]),  studentController.getExamSlotByStudentId);
+    app.get('/student/viewExamSlot/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), studentController.getExamSlotByStudentId);
 
     //route create new student
     app.post('/student', isAuthenticated, isAuthorized(["Admin"]), studentController.createStudent);
@@ -21,5 +21,5 @@ module.exports = function (app) {
     app.put('/student/', isAuthenticated, isAuthorized(["Admin"]), studentController.updateStudent);
 
     //route update status
-    app.put('/student/status', isAuthenticated, isAuthorized(["Admin"]), studentController.deleteStudent);
+    app.put('/student/status/:id', isAuthenticated, isAuthorized(["Admin"]), studentController.deleteStudent);
 }

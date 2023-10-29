@@ -1,6 +1,6 @@
-var { conn, sql } = require("../../connect");
-var Semester = require("../models/semester.model");
-var semester = new Semester();
+let { conn, sql } = require("../../connect");
+let Semester = require("../models/semester.model");
+let semester = new Semester();
 
 exports.getListAll = async function (req, res) {
   semester.getAll(function (err, data) {

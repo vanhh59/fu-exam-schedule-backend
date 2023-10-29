@@ -1,6 +1,6 @@
-var { conn, sql } = require("../../connect");
-var Student = require("../models/student.model");
-var student = new Student();
+let { conn, sql } = require("../../connect");
+let Student = require("../models/student.model");
+let student = new Student();
 
 exports.getListAll = async function (req, res) {
   student.getAll(function (err, data) {
@@ -44,16 +44,16 @@ exports.createStudent = async function (req, res) {
 
 exports.updateStudent = async function (req, res) {
   student.update(req.body.ID, req.body, function (err, data) {
-      if (err) {
-          res.status(400).send({ result: data, error: "Failed to update a user" });
-      } else {
-          res.status(200).send({ result: "Student updated successfully", error: err });
-      }
+    if (err) {
+      res.status(400).send({ result: data, error: "Failed to update a user" });
+    } else {
+      res.status(200).send({ result: "Student updated successfully", error: err });
+    }
   });
 }
 
 exports.deleteStudent = async function (req, res) {
-  student.deleteByUpdate(req.body.ID, req.body.status, function (err, data) {
+  student.deleteByUpdate(req.params.id, function (err, data) {
     if (err) {
       res.status(400).send({ result: data, error: err });
     } else {
@@ -64,10 +64,10 @@ exports.deleteStudent = async function (req, res) {
 
 exports.getExamSlotByStudentId = async function (req, res) {
   student.getExamSlotByStudentId(req.query.StudentId, req.query.SemesterCode, function (err, data) {
-      if (err) {
-          res.status(400).send({ result: data, error: "Not found any exam slot" });
-      } else {
-          res.status(200).send({ result: data, error: err });
-      }
+    if (err) {
+      res.status(400).send({ result: data, error: "Not found any exam slot" });
+    } else {
+      res.status(200).send({ result: data, error: err });
+    }
   });
 }

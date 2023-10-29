@@ -146,10 +146,9 @@ const queries = {
 	AND S.code = @SemesterCode;
   `,
   getDepartmentSalary: `
-  BEGIN TRANSACTION;
   WITH ExaminerSalaries AS (
     SELECT
-        G.location AS Department,
+        G.location AS [Department],
         F.ID AS ExaminerID,
         SUM(DATEDIFF(MINUTE, D.startTime, D.endTime)) / 60 * 100000 AS Salary
     FROM Semester A
@@ -158,13 +157,13 @@ const queries = {
     LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
     LEFT JOIN Register E ON E.examSlotID = D.ID
     LEFT JOIN Examiner F ON F.ID = E.examinerID
-    LEFT JOIN Department G ON G.examinerID = F.ID
+    LEFT JOIN [DB_EXAM].[dbo].[Department] G ON G.examinerID = F.ID
     WHERE E.status = 1
-    GROUP BY G.location, F.ID)
-  SELECT Department, SUM(Salary) AS TotalSalary
-  FROM ExaminerSalaries
-  GROUP BY Department;
-  COMMIT
+    GROUP BY G.location, F.ID
+)
+SELECT [Department], SUM(Salary) AS TotalSalary
+FROM ExaminerSalaries
+GROUP BY [Department];
 `,
   getExamRoomInSemester: `
   SELECT C.ID AS 'CourseID', S.name as 'SubjectName', EB.code as 'examBatch_code',

@@ -11,7 +11,7 @@
 //     user: "sa",
 //     password: "123456",
 //     database: "DB_EXAM_1", // Config cho DB dùng ở local
-    
+
 //     driver: "msnodesqlv8"
 // };
 
@@ -26,21 +26,21 @@
 // }
 
 
-var sql = require('mssql');
+let sql = require('mssql');
 
-var config = {
+let config = {
     server: "mssql-147764-0.cloudclusters.net",
     port: 14397,
     user: "swp391",
     password: "Swp391@@@",
-    database: "DB_EXAM_1",
+    database: "DB_EXAM",
     driver: "tedious",
     options: {
         trustServerCertificate: true
     }
 };
 
-var conn = new sql.ConnectionPool(config).connect()
+let conn = new sql.ConnectionPool(config).connect()
     .then(pool => {
         console.log("Database connection is successful.");
         return pool;

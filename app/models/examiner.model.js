@@ -44,10 +44,11 @@ module.exports = class Examiner {
   }
 
   async create(Examiner, result) {
-    var pool = await conn;
-    var sqlQuery =
-      "INSERT INTO Examiner VALUES (@ID, @name, @email, \
-            @experienceYears, @specialization, @status)";
+    let pool = await conn;
+    console.log(Examiner.name);
+    let sqlQuery =
+      ` INSERT INTO [DB_EXAM].[dbo].[Examiner] VALUES (@ID, @name, @email, 
+        @experienceYears, @specialization, @status)`;
     return await pool
       .request()
       .input("ID", sql.VarChar, Examiner.ID)
@@ -67,8 +68,9 @@ module.exports = class Examiner {
 
   async update(id, Examiner, result) {
     var pool = await conn;
+    console.log(Examiner);
     var sqlQuery =
-      "UPDATE Examier SET name = @name, email = @email,\
+      "UPDATE [DB_EXAM].[dbo].[Examiner] SET name = @name, email = @email,\
         experienceYears = @experienceYears, specialization = @specialization,\
             status = @status WHERE ID = @ID";
     return await pool
@@ -124,31 +126,31 @@ module.exports = class Examiner {
     let pool = await conn;
     let sqlQuery = queries.getAllIncome;
     return await pool.request()
-        .input('SemesterCode', sql.VarChar, data)
-        .query(sqlQuery, function (error, data) {
-            if (error) {
-                result(true, null);
-            } else {
-                result(null, data.recordset);
-            }
-        });
+      .input('SemesterCode', sql.VarChar, data)
+      .query(sqlQuery, function (error, data) {
+        if (error) {
+          result(true, null);
+        } else {
+          result(null, data.recordset);
+        }
+      });
 
-}
+  }
 
-async getAllAvailableSlot(examinerID, SemesterCode, result) {
-  let pool = await conn;
-  let sqlQuery = queries.getAvailableSlots2;
-  return await pool.request()
+  async getAllAvailableSlot(examinerID, SemesterCode, result) {
+    let pool = await conn;
+    let sqlQuery = queries.getAvailableSlots2;
+    return await pool.request()
       .input('examinerID', sql.VarChar, examinerID)
       .input('SemesterCode', sql.VarChar, SemesterCode)
       .query(sqlQuery, function (error, data) {
-          if (error) {
-              result(true, null);
-          } else {
-              result(null, data.recordset);
-          }
+        if (error) {
+          result(true, null);
+        } else {
+          result(null, data.recordset);
+        }
       });
-}
+  }
 
   async getExaminerExamRooms(examinerID, SemesterCode, result) {
     let pool = await conn;
