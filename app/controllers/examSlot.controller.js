@@ -33,7 +33,7 @@ exports.createExamSlot = async function (req, res) {
 };
 
 exports.updateExamSlot = async function (req, res) {
-  student.updateExamSLot(req.body.ID, req.body, function (err, data) {
+  examSlot.updateExamSLot(req.body.ID, req.body, function (err, data) {
     if (err) {
       res.status(400).send({ result: data, error: err });
     } else {
@@ -43,7 +43,7 @@ exports.updateExamSlot = async function (req, res) {
 };
 
 exports.deleteExamSlot = async function (req, res) {
-  student.deleteExamSlot(req.body.ID, req.body.status, function (err, data) {
+  examSlot.deleteExamSlot(req.body.ID, req.body.status, function (err, data) {
     if (err) {
       res.status(400).send({ result: data, error: err });
     } else {

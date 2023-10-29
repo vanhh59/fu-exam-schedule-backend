@@ -8,15 +8,15 @@ module.exports = function (app) {
     app.get('/course/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getListByID);
     
     //route lấy theo subjectID
-    app.get('/course/:subjectID', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getCourseBySubjectID);
+    app.get('/course/subject/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getCourseBySubjectID);
     //route lấy theo name
-    app.get('/course/:name', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getByName);
+    app.post('/course/name', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getByName);
 
     //route thêm mới
     app.post('/course', isAuthenticated, isAuthorized(["Admin"]), courseController.createCourse);
 
     //route update
-    app.put('/course/', isAuthenticated, isAuthorized(["Admin"]), courseController.updateCourse);
+    app.put('/course/:id', isAuthenticated, isAuthorized(["Admin"]), courseController.updateCourse);
 
     //route xóa theo id
     app.delete('/course/:id', isAuthenticated, isAuthorized(["Admin"]), courseController.deleteCourseByID);

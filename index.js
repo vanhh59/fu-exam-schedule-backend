@@ -36,6 +36,9 @@ app.get('', function (req, res) {
     res.send('<a href="https://fu-exam-schedule.vercel.app/">FU Exam Schedule</a>');
 });
 
+require('./app/routes/classroom.route')(app);
+require('./app/routes/exambatch.route')(app);
+require('./app/routes/course.route')(app);
 require('./app/routes/student.route')(app);
 require('./app/routes/examiner.route')(app);
 require('./app/routes/department.route')(app);

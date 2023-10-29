@@ -47,7 +47,7 @@ module.exports = class classroom {
         var sqlQuery = "INSERT INTO Classroom VALUES (@ID, @code, @building, \
              @floor, @type ,@capacity, @status )"
         return await pool.request()
-            .input('ID', sql.Char, classroom.id)
+            .input('ID', sql.VarChar, classroom.ID)
             .input('code', sql.NVarChar, classroom.code)
             .input('building', sql.VarChar, classroom.building)
             .input('floor', sql.Int, classroom.floor)
@@ -56,7 +56,7 @@ module.exports = class classroom {
             .input('status', sql.Bit, classroom.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error.message, null);
                 } else {
                     result(null, data);
                 }
@@ -69,7 +69,7 @@ module.exports = class classroom {
             floor = @floor, type = @type, capacity = @capacity,\
             status = @status WHERE ID = @ID";
         return await pool.request()
-        .input('ID', sql.Char, classroom.id)
+        .input('ID', sql.Char, classroom.ID)
         .input('code', sql.NVarChar, classroom.code)
         .input('building', sql.VarChar, classroom.building)
         .input('floor', sql.Int, classroom.floor)
@@ -78,22 +78,22 @@ module.exports = class classroom {
         .input('status', sql.Bit, classroom.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error.message, null);
                 } else {
                     result(null, data);
                 }
             });
     }
 
-    async deleteByUpdate(id, status, result) {
+    async deleteByUpdate(id, result) {
         var pool = await conn;
-        var sqlQuery = "UPDATE Student SET status = @status WHERE ID = @ID";
+        var sqlQuery = "UPDATE [dbo].[Classroom] SET status = @status WHERE ID = @ID";
         return await pool.request()
-            .input('ID', sql.Char, id)
-            .input('status', sql.Bit, false)
+            .input('ID', sql.VarChar, id)
+            .input('status', sql.Bit, 0)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error.message, null);
                 } else {
                     result(null, data);
                 }

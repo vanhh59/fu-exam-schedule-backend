@@ -14,23 +14,37 @@ module.exports = class ExamBatch {
     }
     async getExambatchByCourseID(id, result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM ExamBactch WHERE CourseID = @CourseID";
+        var sqlQuery = "SELECT * FROM ExamBatch WHERE courseID = @courseID";
         return await pool.request()
-            .input('examinerID', sql.Char, id)
+            .input('courseID', sql.VarChar, id)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error.message, null);
+                }
+            });
+    }
+    
+    async getListByID(id, result) {
+        var pool = await conn;
+        var sqlQuery = "SELECT * FROM ExamBatch WHERE ID = @ID";
+        return await pool.request()
+            .input('ID', sql.Int, id)
+            .query(sqlQuery, function (error, data) {
+                if (data.recordset && data.recordset.length > 0) {
+                    result(null, data.recordset);
+                } else {
+                    result(error.message, null);
                 }
             });
     }
 
-    async getByCode(phone, result) {
+    async getByCode(id, result) {
         var pool = await conn;
         var sqlQuery = "SELECT * FROM ExamBatch WHERE code = @code";
         return await pool.request()
-            .input('code', sql.NVarChar, code)
+            .input('code', sql.VarChar, id)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
@@ -63,34 +77,34 @@ module.exports = class ExamBatch {
 
     async updateExamBatch(id, exambatch, result) {
         var pool = await conn;
-        var sqlQuery = "UPDATE ExamBatch SET ID = @ID, CourseID = @CourseID,\
-        code = @code, date = @date, location = @location\
+        var sqlQuery = "UPDATE ExamBatch SET courseID = @courseID, \
+        code = @code, date = @date, location = @location, \
             status = @status WHERE ID = @ID";
         return await pool.request()
-        .input('ID', sql.Char, exambatch.id)
-        .input('CourseID', sql.Char, exambatch.CourseID)
-        .input('code', sql.NVarChar, exambatch.code)
+        .input('ID', sql.Int, id)
+        .input('courseID', sql.VarChar, exambatch.courseID)
+        .input('code', sql.VarChar, exambatch.code)
         .input('date', sql.DateTime, exambatch.date)
         .input('location', sql.NVarChar, exambatch.location)
-        .input('status', sql.Int, exambatch.status)
+        .input('status', sql.Bit, exambatch.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error.message, null);
                 } else {
                     result(null, data);
                 }
             });
     }
 
-    async deleteExambatch(id, status, result) {
+    async deleteExambatch(id, result) {
         var pool = await conn;
         var sqlQuery = "UPDATE ExamBatch SET status = @status WHERE ID = @ID";
         return await pool.request()
-            .input('ID', sql.Char, id)
-            .input('status', sql.Bit, false)
+            .input('ID', sql.Int, id)
+            .input('status', sql.Bit, 0)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error.message, null);
                 } else {
                     result(null, data);
                 }

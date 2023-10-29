@@ -1,6 +1,6 @@
 var { conn, sql } = require('../../connect');
-var classroom = require('../models/classroom.model');
-var classroom = new classroom();
+var Classroom = require('../models/classroom.model');
+var classroom = new Classroom();
 
 exports.getListAll = async function (req, res) {
     classroom.getListAll(function (err, data) {
@@ -45,7 +45,7 @@ exports.updateClassroom = async function (req, res) {
 }
 
 exports.deleteClassroom = async function (req, res) {
-    classroom.deleteClassroom(req.body.id, req.body.status, function (err, data) {
+    classroom.deleteByUpdate(req.params.id, function (err, data) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {

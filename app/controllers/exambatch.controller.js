@@ -1,5 +1,5 @@
 var { conn, sql } = require('../../connect');
-var  exambatch = require('../models/exambatch.model');
+var  ExamBatch = require('../models/exambatch.model');
 var exambatch = new ExamBatch();
 
 exports.getListAll = async function (req, res) {
@@ -12,8 +12,18 @@ exports.getListAll = async function (req, res) {
     });
 }
 
+exports.getListByID = async function (req, res) {
+    exambatch.getListByID(req.params.id, function (err, data) {
+        if(err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+    });
+}
+
 exports.getExambatchByCourseID = async function (req, res) {
-    department.getExambatchByCourseID(req.params.courseID, function (err, data) {
+    exambatch.getExambatchByCourseID(req.params.id, function (err, data) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {
@@ -23,7 +33,7 @@ exports.getExambatchByCourseID = async function (req, res) {
 }
 
 exports.getByCode = async function (req, res) {
-    department.getByCode(req.params.code, function (err, data) {
+    exambatch.getByCode(req.params.id, function (err, data) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {
@@ -43,8 +53,8 @@ exports.createExambatch = async function (req, res) {
 }
 
 
-exports.updateExambatch = async function (req, res) {
-    exambatch.update(req.body.id, req.body, function (err, data) {
+exports.updateExamBatch = async function (req, res) {
+    exambatch.updateExamBatch(req.params.id, req.body, function (err, data) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {
@@ -54,7 +64,7 @@ exports.updateExambatch = async function (req, res) {
 }
 
 exports.deleteExambatch = async function (req, res) {
-    exambatch.deleteExambatch(req.body.id, req.body.status, function (err, data) {
+    exambatch.deleteExambatch(req.params.id, function (err, data) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {

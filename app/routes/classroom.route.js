@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    var classRoomController = require('.../controllers/classroom.controller');
+    var classRoomController = require('../controllers/classroom.controller');
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route lấy tất cả
@@ -13,7 +13,7 @@ module.exports = function (app) {
     app.post('/classroom', isAuthenticated, isAuthorized(["Admin"]), classRoomController.createClassroom);
     //route update
 
-    app.put('/classroom/', isAuthenticated, isAuthorized(["Admin"]), classRoomController.updateClassroom);
+    app.put('/classroom/:id', isAuthenticated, isAuthorized(["Admin"]), classRoomController.updateClassroom);
 
     //route xóa theo id
     app.delete('/classroom/:id', isAuthenticated, isAuthorized(["Admin"]), classRoomController.deleteClassroom);

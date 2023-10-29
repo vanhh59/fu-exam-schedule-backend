@@ -10,7 +10,7 @@ module.exports = class course {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error.message, null);
                 }
             });
     }
@@ -19,12 +19,12 @@ module.exports = class course {
         var pool = await conn;
         var sqlQuery = "SELECT * FROM Course WHERE subjectID = @subjectID";
         return await pool.request()
-            .input('subjectID', sql.Char, id)
+            .input('subjectID', sql.VarChar, id)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error.message, null);
                 }
             });
     }
@@ -33,31 +33,31 @@ module.exports = class course {
         var pool = await conn;
         var sqlQuery = queries.getCourseByID;
         return await pool.request()
-            .input('courseID', sql.Int, courseId)
+            .input('courseID', sql.VarChar, courseId)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error.message, null);
                 }
             });
     }
 
-    async getByName(name, result) {
+    async getByName(data, result) {
         var pool = await conn;
         var sqlQuery = "SELECT * FROM Course WHERE name = @name";
         return await pool.request()
-            .input('name', sql.NVarChar, name)
+            .input('name', sql.NVarChar, data.name)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error.message, null);
                 }
             });
     }
 
-    async create(course, result) {
+    async createCourse(course, result) {
         var pool = await conn;
         var sqlQuery = "INSERT INTO Course VALUES (@ID, @subjectID, @semesterID, \
             @name, @instructor, @status)"
@@ -77,33 +77,33 @@ module.exports = class course {
             });
     }
 
-    async update(id, course, result) {
+    async updateCourse(id, course, result) {
         var pool = await conn;
-        var sqlQuery = "UPDATE  SET subjectID = @subjectID,\
-        semesterID = @semesterID, name = @name, instructor = @instructor\
-            status = @status WHERE ID = @ID";
+        var sqlQuery = "UPDATE [dbo].[Course] SET subjectID = @subjectID,\
+        semesterID = @semesterID, name = @name, instructor = @instructor,\
+        status = @status WHERE ID = @ID";
         return await pool.request()
-        .input('ID', sql.Char, course.ID)
-        .input('subjectID', sql.Char, course.subjectID)
-        .input('semesterID', sql.Char, course.semesterID)
+        .input('ID', sql.VarChar, id)
+        .input('subjectID', sql.VarChar, course.subjectID)
+        .input('semesterID', sql.VarChar, course.semesterID)
         .input('name', sql.NVarChar, course.name)       
-        .input('instructor', sql.Char, course.instructor)
+        .input('instructor', sql.NVarChar, course.instructor)
         .input('status', sql.Bit, course.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error.message, null);
                 } else {
                     result(null, data);
                 }
             });
     }
 
-    async deleteCourse(id, status, result) {
+    async deleteCourse(id, result) {
         var pool = await conn;
         var sqlQuery = "UPDATE Course SET status = @status WHERE ID = @ID";
         return await pool.request()
-            .input('ID', sql.Char, ID)
-            .input('status', sql.Bit, false)
+            .input('ID', sql.VarChar, id)
+            .input('status', sql.Bit, 0)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(true, null);
