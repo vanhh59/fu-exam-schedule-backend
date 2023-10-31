@@ -21,7 +21,7 @@ exports.createExamSchedule = async function (req, res) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {
-            res.status(200).send({ result: data, error: err });
+            res.status(200).send({ result: data[0], message: 'Create ExamSlot and ExamBatch succcessfull', error: err });
         }
     });
 }
@@ -31,7 +31,7 @@ exports.register = async function (req, res) {
         if(err) {
             res.status(400).send({ result: data, error: err });
         } else {
-            res.status(200).send({ result: data, error: err });
+            res.status(200).send({ result: data, message:'Register successfull', error: err });
         }
     });
 }
@@ -44,6 +44,35 @@ exports.fieldInfoExamSchedule = async function (req, res) {
             res.status(200).send({ result: data, error: err });
         }
     });
+}
+
+exports.addStudentIntoExamRoom = async function (req, res) {
+  dashboard.addStudentIntoExamRoom(req.body, function (err, data) {
+      if(err) {
+          res.status(400).send({ result: data, error: err });
+      } else {
+          res.status(200).send({ result: data, message: `Add student ID: ${req.body.studentID} into ExamRoom ID ${req.body.examRoomID} successfull`, error: err });
+      }
+  });
+}
+
+exports.updateRegister = async function (req, res) {
+  dashboard.checkUpdteRegisterIsLessThan3Day(req.body, function (err, data) {
+      if(err) {
+          res.status(400).send({ result: data, error: err });
+      }
+      if (data[0].Result == 0) {
+        dashboard.updateRegister(req.body, function (err, data) {
+          if(err) {
+            res.status(400).send({ result: data, error: err });
+          } else {
+            res.status(200).send({ result: data, message: `Update successfull register` ,error: err });
+          }
+        })
+      } else {
+        res.status(400).send({ result: data, message: 'Time to update register must be greather then 3 days', error: err });
+      }
+  });
 }
 
 exports.importExcelFile = async function (req, res) {

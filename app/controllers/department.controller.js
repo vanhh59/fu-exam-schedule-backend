@@ -1,10 +1,10 @@
-var { conn, sql } = require('../../connect');
-var Department = require('../models/department.model');
-var department = new Department();
+let { conn, sql } = require('../../connect');
+let Department = require('../models/department.model');
+let department = new Department();
 
 exports.getListAll = async function (req, res) {
     department.getAll(function (err, data) {
-        if(err) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -12,9 +12,9 @@ exports.getListAll = async function (req, res) {
     });
 }
 
-exports.getDepartmentByExaminerID = async function (req, res) {
-    department.getDepartmentByExaminerID(req.params.examinerID, function (err, data) {
-        if(err) {
+exports.getDepartmentByID = async function (req, res) {
+    department.getDepartmentByID(req.params.id, function (err, data) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -24,7 +24,7 @@ exports.getDepartmentByExaminerID = async function (req, res) {
 
 exports.getByLocation = async function (req, res) {
     department.getByLocation(req.params.location, function (err, data) {
-        if(err) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -34,7 +34,7 @@ exports.getByLocation = async function (req, res) {
 
 exports.getByPhone = async function (req, res) {
     department.getByPhone(req.params.phone, function (err, data) {
-        if(err) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -44,7 +44,7 @@ exports.getByPhone = async function (req, res) {
 
 exports.getByName = async function (req, res) {
     department.getByName(req.params.name, function (err, data) {
-        if(err) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -54,7 +54,7 @@ exports.getByName = async function (req, res) {
 
 exports.createDepartment = async function (req, res) {
     department.create(req.body, function (err, data) {
-        if(err) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -64,8 +64,8 @@ exports.createDepartment = async function (req, res) {
 
 
 exports.updateDepartment = async function (req, res) {
-    department.update(req.body.ID, req.body, function (err, data) {
-        if(err) {
+    department.update(req.body, function (err, data) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -74,8 +74,8 @@ exports.updateDepartment = async function (req, res) {
 }
 
 exports.deleteDepartment = async function (req, res) {
-    department.deleteDepartment(req.body.name, req.body.status, function (err, data) {
-        if(err) {
+    department.deleteDepartment(req.body.id, function (err, data) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });
@@ -85,7 +85,7 @@ exports.deleteDepartment = async function (req, res) {
 
 exports.getAllDepartmentSalary = async function (req, res) {
     department.getAllAvailableSlot(function (err, data) {
-        if(err) {
+        if (err) {
             res.status(400).send({ result: data, error: err });
         } else {
             res.status(200).send({ result: data, error: err });

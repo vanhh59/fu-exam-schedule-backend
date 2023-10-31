@@ -3,8 +3,8 @@ const queries = require("../sql/Queries");
 
 module.exports = class Student {
   async getAll(result) {
-    var pool = await conn;
-    var sqlQuery = "SELECT * FROM Student";
+    let pool = await conn;
+    let sqlQuery = "SELECT * FROM Student";
     return await pool.request().query(sqlQuery, function (error, data) {
       if (data.recordset && data.recordset.length > 0) {
         result(null, data.recordset);
@@ -15,8 +15,7 @@ module.exports = class Student {
   }
 
   async getExamSlotByStudentId(stuID, SemesterCode, result) {
-    console.log(stuID);
-    console.log(SemesterCode);
+
     let pool = await conn;
     let sqlQuery = queries.getExamSlotByStudentID;
     return await pool
@@ -33,8 +32,8 @@ module.exports = class Student {
   }
 
   async getByID(id, result) {
-    var pool = await conn;
-    var sqlQuery = "SELECT * FROM Student WHERE ID = @ID";
+    let pool = await conn;
+    let sqlQuery = "SELECT * FROM Student WHERE ID = @ID";
     return await pool
       .request()
       .input("ID", sql.VarChar, id)
@@ -121,7 +120,7 @@ module.exports = class Student {
       });
   }
 
-  async deleteByUpdate(id, status, result) {
+  async deleteByUpdate(id, result) {
     let pool = await conn;
     let sqlQuery = "UPDATE Student SET status = @status WHERE ID = @ID";
     return await pool

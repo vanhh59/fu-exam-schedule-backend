@@ -22,8 +22,7 @@ const queries = {
     WHERE ES.status = 1
     ORDER BY ES.startTime DESC`,
   getCourseByID: `SELECT * FROM dbo.Course WHERE ID = @courseID`,
-  createExamSlotAndExamBatch: `BEGIN TRY
-  BEGIN TRANSACTION;
+  createExamSlotAndExamBatch: `BEGIN TRANSACTION;
   INSERT INTO ExamBatch (courseID, code, date, location, status) VALUES (@courseID, @code, @startTime, 'FPTU', 1);
   DECLARE @examBatchID INT;
   DECLARE @numericPart INT;
@@ -43,15 +42,38 @@ const queries = {
   WHERE C.ID = @courseID;
   INSERT INTO Subject_Slot (examSlotID, subjectID, status)
   VALUES (@examSlotID, @subjectID, 1);
-  COMMIT;
   SELECT @subjectID as subjectID, @subjectName as subjectName, @courseID1 as courseID;
-  END TRY
-  BEGIN CATCH
-    IF @@TRANCOUNT > 0
-        ROLLBACK;
-  END CATCH;`,
+  COMMIT`,
   register: `INSERT INTO Register(examinerID, examSlotID, status)
     VALUES (@examinerID, @examSlotID, 0)`,
+  registerUser: `BEGIN TRANSACTION;
+  DECLARE @ID VARCHAR(200)
+  DECLARE @numberId INT
+  SELECT TOP 1 @numberId = MAX(CAST(SUBSTRING(ID, 2, LEN(ID)) AS INT)) FROM [dbo].[Users];
+  SET @numberId = ISNULL(@numberId, 0) + 1;
+  SET @ID = 'U' + CAST(@numberId AS NVARCHAR(50));
+  INSERT INTO [dbo].[Users] ([ID], [userName], [email], [Role], [status])
+  VALUES (@ID, @userName, @email, 'Student', 1)
+  COMMIT;`,
+  checkEmailIsValid: `SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Users WHERE email = @email) THEN 1 ELSE 0 END AS EmailExists`,
+  authorizeUser: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
+  addStudentIntoExamRoom: `INSERT INTO [dbo].[Stu_ExamRoom] (examRoomID, studentID, status)
+  VALUES (@examRoomID, @studentID, 1)`,
+  checkUpdteRegisterIsLessThan3Day: `
+  DECLARE @Now DATETIME = GETDATE();
+  SELECT CASE
+      WHEN EXISTS (
+          SELECT 1
+          FROM [dbo].[Register] AS R
+          INNER JOIN [dbo].[ExamSlot] AS ES ON R.examSlotID = ES.ID
+          WHERE R.examinerID = @examinerID AND ES.ID = @examSlotID AND DATEDIFF(DAY, @Now, ES.startTime) <= 3
+      ) THEN 1
+      ELSE 0
+  END AS Result;`,
+  updateRegister: `BEGIN TRANSACTION;
+  UPDATE [dbo].[Register] SET [status] = 0 WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
+  UPDATE [dbo].[ExamRoom] SET [examinerID] = '' WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
+  COMMIT`,
   fieldInfoExamSchedule: `BEGIN TRANSACTION;
   DECLARE @numericPart INT
   SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT))
@@ -124,8 +146,7 @@ const queries = {
     WHERE examinerID = @examinerID AND status = 1
     );
   `,
-  getAvailableSlots2:
-    `
+  getAvailableSlots2: `
   SELECT E.ID, E.startTime, E.endTime, E.status, S.code
   FROM ExamSlot E
   LEFT JOIN Register R ON E.ID = R.examSlotID 
@@ -146,10 +167,9 @@ const queries = {
 	AND S.code = @SemesterCode;
   `,
   getDepartmentSalary: `
-  BEGIN TRANSACTION;
   WITH ExaminerSalaries AS (
     SELECT
-        G.location AS Department,
+        G.location AS [Department],
         F.ID AS ExaminerID,
         SUM(DATEDIFF(MINUTE, D.startTime, D.endTime)) / 60 * 100000 AS Salary
     FROM Semester A
@@ -158,13 +178,13 @@ const queries = {
     LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
     LEFT JOIN Register E ON E.examSlotID = D.ID
     LEFT JOIN Examiner F ON F.ID = E.examinerID
-    LEFT JOIN Department G ON G.examinerID = F.ID
+    LEFT JOIN [DB_EXAM].[dbo].[Department] G ON G.examinerID = F.ID
     WHERE E.status = 1
-    GROUP BY G.location, F.ID)
-  SELECT Department, SUM(Salary) AS TotalSalary
-  FROM ExaminerSalaries
-  GROUP BY Department;
-  COMMIT
+    GROUP BY G.location, F.ID
+)
+SELECT [Department], SUM(Salary) AS TotalSalary
+FROM ExaminerSalaries
+GROUP BY [Department];
 `,
   getExamRoomInSemester: `
   SELECT C.ID AS 'CourseID', S.name as 'SubjectName', EB.code as 'examBatch_code',
@@ -227,8 +247,7 @@ const queries = {
       SET @IsConflict = 0;
   END
   SELECT @IsConflict AS Result;`,
-  getStudentInRoom:
-    `
+  getStudentInRoom: `
   SELECT S.name, S.email, ES.startTime, ES.ID 
   FROM Student S 
   LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
@@ -236,8 +255,7 @@ const queries = {
   LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
   WHERE ES.ID = @examSlotID
   `,
-  getExamSlotByStudentID:
-    `
+  getExamSlotByStudentID: `
   SELECT EX.name as 'Examiner name', ES.startTime, ES.endTime, SU.code, SEM.code
 	FROM Student S 
 	LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
@@ -250,8 +268,7 @@ const queries = {
 	LEFT JOIN Semester SEM ON SEM.ID = C.semesterID
 	WHERE S.ID = @StudentId  AND SEM.code = @SemesterCode
   `,
-  getExamRoomByExaminerID:
-    `
+  getExamRoomByExaminerID: `
     SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
     FROM ExamSlot ES 
     LEFT JOIN Register RE ON RE.examSlotID = ES.ID
@@ -259,8 +276,34 @@ const queries = {
     LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
     LEFT JOIN Course C ON C.ID = EB.courseID
     LEFT JOIN Semester SE ON SE.ID = C.semesterID
-    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode 
-  `
+    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode AND RE.status = 1
+  `,
+  getFinishedExamSlot: `
+  SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+    FROM ExamSlot ES 
+    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    LEFT JOIN Course C ON C.ID = EB.courseID
+    LEFT JOIN Semester SE ON SE.ID = C.semesterID
+    WHERE EX.ID = @examinerID 
+	AND SE.code = @SemesterCode 
+	AND RE.status = 1
+	AND ES.endTime < CAST(GETDATE() AS DATE)
+  `,
+  getUnFinishedExamSlot: `
+  SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+    FROM ExamSlot ES 
+    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    LEFT JOIN Course C ON C.ID = EB.courseID
+    LEFT JOIN Semester SE ON SE.ID = C.semesterID
+    WHERE EX.ID = @examinerID 
+	AND SE.code = @SemesterCode 
+	AND RE.status = 1
+	AND ES.endTime > CAST(GETDATE() AS DATE)
+  `,
 };
 
 module.exports = queries;

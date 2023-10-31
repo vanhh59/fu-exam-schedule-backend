@@ -2,23 +2,30 @@ var { conn, sql } = require('../../connect');
 const queries = require('../sql/Queries');
 module.exports = class Department {
     async getAll(result) {
-        var pool = await conn;
-        var sqlQuery = "SELECT * FROM Department";
-        return await pool.request()
-            .query(sqlQuery, function (error, data) {
-                if (data.recordset && data.recordset.length > 0) {
-                    result(null, data.recordset);
-                } else {
-                    result(true, null);
-                }
-            });
+        let pool = await conn;
+        let sqlQuery = `SELECT TOP (1000) [examinerID]
+        ,[name]
+        ,[examinerType]
+        ,[faculty]
+        ,[location]
+        ,[phone]
+        ,[status]
+        ,[departmentID]
+    FROM [DB_EXAM].[dbo].[Department]`;
+        return await pool.request().query(sqlQuery, function (error, data) {
+            if (data.recordset && data.recordset.length > 0) {
+                result(null, data.recordset);
+            } else {
+                result(true, null);
+            }
+        });
     }
 
-    async getDepartmentByExaminerID(id, result) {
-        var pool = await conn;
-        var sqlQuery = "SELECT * FROM Department WHERE examinerID = @examinerID";
+    async getDepartmentByID(id, result) {
+        let pool = await conn;
+        let sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE departmentID = @DepartmentID";
         return await pool.request()
-            .input('examinerID', sql.VarChar, id)
+            .input('DepartmentID', sql.Int, id)
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
@@ -29,8 +36,8 @@ module.exports = class Department {
     }
 
     async getByLocation(location, result) {
-        var pool = await conn;
-        var sqlQuery = "SELECT * FROM Department WHERE location = @location";
+        let pool = await conn;
+        let sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE location = @location";
         return await pool.request()
             .input('location', sql.VarChar, location)
             .query(sqlQuery, function (error, data) {
@@ -44,7 +51,7 @@ module.exports = class Department {
 
     async getByPhone(phone, result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM Department WHERE phone = @phone";
+        var sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE phone = @phone";
         return await pool.request()
             .input('phone', sql.VarChar, phone)
             .query(sqlQuery, function (error, data) {
@@ -58,7 +65,7 @@ module.exports = class Department {
 
     async getByName(name, result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM Department WHERE name = @name";
+        var sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE name = @name";
         return await pool.request()
             .input('name', sql.VarChar, name)
             .query(sqlQuery, function (error, data) {
@@ -71,19 +78,20 @@ module.exports = class Department {
     }
 
     async create(Department, result) {
-        var pool = await conn;
-        var sqlQuery = "INSERT INTO Department VALUES (@examinerID, @name, @examinerType, \
+        let pool = await conn;
+        let sqlQuery = "INSERT INTO [DB_EXAM].[dbo].[Department] VALUES (@examinerID, @name, @examinerType, \
             @faculty, @location, @phone, @status)"
         return await pool.request()
-            .input('examinerID', sql.Char, Department.examinerID)
+            .input('examinerID', sql.NVarChar, Department.examinerID)
             .input('name', sql.NVarChar, Department.name)
             .input('examinerType', sql.VarChar, Department.examinerType)
-            .input('faculty', sql.Int, Department.faculty)
+            .input('faculty', sql.NVarChar, Department.faculty)
             .input('location', sql.NVarChar, Department.location)
             .input('phone', sql.NVarChar, Department.phone)
             .input('status', sql.Int, Department.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
+                    console.log(error);
                     result(true, null);
                 } else {
                     result(null, data);
@@ -91,21 +99,25 @@ module.exports = class Department {
             });
     }
 
-    async update(id, Department, result) {
-        var pool = await conn;
-        var sqlQuery = "UPDATE Department SET name = @name, examinerType = @examinerType,\
-        faculty = @faculty, location = @location, phone = @phone\
-            status = @status WHERE name = @name";
+    async update(Department, result) {
+        let pool = await conn;
+        let sqlQuery = `
+        UPDATE [DB_EXAM].[dbo].[Department] SET name = @name, examinerType = @examinerType,
+        faculty = @faculty, location = @location, phone = @phone,
+            status = @status WHERE departmentID = @id
+        `;
         return await pool.request()
-            .input('examinerID', sql.Char, Department.examinerID)
+            .input('examinerID', sql.NVarChar, Department.examinerID)
             .input('name', sql.NVarChar, Department.name)
             .input('examinerType', sql.VarChar, Department.examinerType)
-            .input('faculty', sql.Int, Department.faculty)
+            .input('faculty', sql.VarChar, Department.faculty)
             .input('location', sql.NVarChar, Department.location)
             .input('phone', sql.NVarChar, Department.phone)
-            .input('status', sql.Int, Examiner.status)
+            .input('status', sql.Int, Department.status)
+            .input('id', sql.Int, Department.id)
             .query(sqlQuery, function (error, data) {
                 if (error) {
+                    console.log(error);
                     result(true, null);
                 } else {
                     result(null, data);
@@ -113,11 +125,11 @@ module.exports = class Department {
             });
     }
 
-    async deleteDepartment(name, status, result) {
-        var pool = await conn;
-        var sqlQuery = "UPDATE Department SET status = @status WHERE name = @name";
+    async deleteDepartment(id, result) {
+        let pool = await conn;
+        let sqlQuery = "UPDATE [DB_EXAM].[dbo].[Department] SET status = @status WHERE departmentID = @id";
         return await pool.request()
-            .input('name', sql.VarChar, name)
+            .input('id', sql.Int, id)
             .input('status', sql.Bit, false)
             .query(sqlQuery, function (error, data) {
                 if (error) {
@@ -130,15 +142,17 @@ module.exports = class Department {
 
     async getAllAvailableSlot(result) {
         let pool = await conn;
+        console.log("Im here");
         let sqlQuery = queries.getDepartmentSalary;
         return await pool.request()
             .query(sqlQuery, function (error, data) {
                 if (error) {
+                    console.log(error, data);
                     result(true, null);
                 } else {
+                    console.log(data);
                     result(null, data.recordset);
                 }
             });
     }
 }
-

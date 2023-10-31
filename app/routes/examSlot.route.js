@@ -12,7 +12,7 @@ module.exports = function (app) {
     // app.post('/examSlot', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.createExamSlot);
 
     //route update
-    app.put('/examSlot/', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.updateExamSlot);
+    app.put('/examSlot/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.updateExamSlot);
 
     //route xóa theo id
     app.delete('/examSlot/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.deleteExamSlot);

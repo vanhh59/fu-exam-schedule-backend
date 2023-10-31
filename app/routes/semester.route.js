@@ -1,5 +1,5 @@
 module.exports = function (app) {
-    var semesterController = require('../controllers/semester.controller');
+    let semesterController = require('../controllers/semester.controller');
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route get all
@@ -11,9 +11,9 @@ module.exports = function (app) {
     //route create new semester
     app.post('/semester', isAuthenticated, isAuthorized(["Admin"]), semesterController.createNew);
 
-    //route update semester
+    // //route update semester
     app.put('/semester/:id', isAuthenticated, isAuthorized(["Admin"]), semesterController.update);
 
-    //route delete by id
-    app.put('/semester/:id', isAuthenticated, isAuthorized(["Admin"]), semesterController.deleteByID);
+    // //route delete by id
+    app.put('/semester/delete/:id', isAuthenticated, isAuthorized(["Admin"]), semesterController.deleteByID);
 }

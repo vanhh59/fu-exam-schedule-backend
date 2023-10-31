@@ -8,4 +8,6 @@ module.exports = function (app) {
     app.post('/register', isAuthenticated, isAuthorized(['Testing Admin', 'Admin', 'Lecturer']), dashboardController.register)
     app.post('/exam-room', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.fieldInfoExamSchedule)
     app.post('/exam-room/import-excel', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.importExcelFile)
+    app.post('/exam-room/add-student', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.addStudentIntoExamRoom)
+    app.put('/exam-room/update-register', isAuthenticated, isAuthorized(['Testing Admin', 'Admin', 'Lecturer']), dashboardController.updateRegister)
 }

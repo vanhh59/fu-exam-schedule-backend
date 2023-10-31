@@ -72,7 +72,7 @@ module.exports = class Dashboard {
         if (error) {
           result(error, null);
         } else {
-          result(null, data);
+          result(null, data.recordset);
         }
       });
   }
@@ -239,5 +239,52 @@ module.exports = class Dashboard {
       return null;
     }
   }
-  
+
+  async addStudentIntoExamRoom(item, result) {
+    var pool = await conn;
+    var sqlQuery = queries.addStudentIntoExamRoom;
+    return await pool
+      .request()
+      .input("examRoomID", sql.VarChar, item.examRoomID)
+      .input("studentID", sql.VarChar, item.studentID)
+      .query(sqlQuery, function (error, data) {
+        if (error) {
+          result(error.message, null);
+        } else {
+          result(null, data);
+        }
+      });
+  }
+
+  async checkUpdteRegisterIsLessThan3Day(item, result) {
+    var pool = await conn;
+    var sqlQuery = queries.checkUpdteRegisterIsLessThan3Day;
+    return await pool
+      .request()
+      .input("examinerID", sql.VarChar, item.examinerID)
+      .input("examSlotID", sql.VarChar, item.examSlotID)
+      .query(sqlQuery, function (error, data) {
+        if (error) {
+          result(error, null);
+        } else {
+          result(null, data.recordset);
+        }
+      });
+  }
+
+  async updateRegister(item, result) {
+    var pool = await conn;
+    var sqlQuery = queries.updateRegister;
+    return await pool
+      .request()
+      .input("examinerID", sql.VarChar, item.examinerID)
+      .input("examSlotID", sql.VarChar, item.examSlotID)
+      .query(sqlQuery, function (error, data) {
+        if (error) {
+          result(error, null);
+        } else {
+          result(null, data.recordset);
+        }
+      });
+  }
 };

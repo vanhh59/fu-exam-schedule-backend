@@ -1,7 +1,9 @@
 // authRouter.js
 const express = require('express');
-const User = require('../models/users.model'); // Import the authentication model
+const User = require('../models/users.model');
 const user = new User();
+
+const { isAuthorized } = require('../controllers/auth.controller');
 const authRouter = express.Router();
 
 // Define your routes for authentication
@@ -20,13 +22,12 @@ authRouter.post('/login', (req, res) => {
       res.status(500).send('Internal Server Error');
       return;
     }
-
     if (user) {
       // User found, store user information in the session
       req.session.user = user;
-      res.status(200).send('Login successful');
+      res.status(200).send({message: 'Login successful', userInfo: user});
     } else {
-      res.status(401).send('Invalid username or password');
+      res.status(401).send('Email invalid');
     }
   });
 });
@@ -40,6 +41,44 @@ authRouter.get('/logout', isAuthenticated, (req, res) => {
     }
     // res.redirect('/login');
     res.status(200).send('Logout successful');
+  });
+});
+
+authRouter.post('/register', (req, res) => {
+  const { email } = req.body;
+
+  user.checkEmailIsValid(email, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send({ result: data, error: err });
+      return;
+    }
+    if (data[0]?.EmailExists == 1) {
+      res.status(401).send('Account is valid');
+    } else {
+      user.registerUser(req.body, (err, data) => {
+        if (err) {
+          console.error(err);
+          res.status(400).send('Email is valid');
+          return;
+        } else {
+          // User found, store user information in the session
+          req.session.user = user;
+          res.status(200).send({message: 'Register successful', role: 'Student'});
+          return;
+        }
+      });
+    }
+  });
+});
+
+authRouter.post('/authorize', isAuthorized(["Admin"]), (req, res) => {
+  user.authorizeUser(req.body, (err, data) => {
+    if (err) {
+      res.status(400).send({ result: data, error: err });
+    } else {
+      res.status(200).send({ result: data, message:`Authorize Successful for user ${req.body.ID}`, role: `${req.body.Role}`, error: err });
+    }
   });
 });
 

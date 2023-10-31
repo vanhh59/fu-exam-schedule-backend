@@ -1,5 +1,5 @@
 var { conn, sql } = require("../../connect");
-var Subject = require("../models/department.model");
+var Subject = require("../models/subject.model");
 var subject = new Subject();
 
 exports.getAll = async function (req, res) {

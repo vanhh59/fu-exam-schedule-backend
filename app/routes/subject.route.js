@@ -12,10 +12,9 @@ module.exports = function (app) {
     app.post('/subject', isAuthenticated, isAuthorized(["Admin"]), subjectController.create);
 
     //route update subject
-    app.put('/subject', isAuthenticated, isAuthorized(["Admin"]), subjectController.update);
+    app.put('/subject/', isAuthenticated, isAuthorized(["Admin"]), subjectController.update);
 
     //route delete by id
-    app.delete('/subject/:id', isAuthenticated, isAuthorized(["Admin"]), subjectController.deleteByUpdate);
+    app.put('/subject/:id', isAuthenticated, isAuthorized(["Admin"]), subjectController.deleteByUpdate);
 }
-
 
