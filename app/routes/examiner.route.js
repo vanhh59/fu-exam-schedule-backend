@@ -23,7 +23,13 @@ module.exports = function (app) {
     //route tất cả mọi người lấy lương trog 1 semester
     app.get('/examiner/slot-available/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getAllAvailableSlot)
 
-    //route thêm mới
+    //route xem danh sách những exam slot mà giám thị đó đã coi rồi
+    app.get('/examiner/slot-finished/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getAllFinishedSlot)
+
+    //route xem danh sách những exam slot mà giám thị đó chưa coi
+    app.get('/examiner/slot-unfinished/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getAllUnFinishedSlot)
+
+    //route thêm mớiy
     app.post('/examiner', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.createNewExaminer);
 
     //route update

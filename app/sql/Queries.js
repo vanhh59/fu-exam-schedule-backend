@@ -157,7 +157,7 @@ const queries = {
     LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
     LEFT JOIN Register E ON E.examSlotID = D.ID
     LEFT JOIN Examiner F ON F.ID = E.examinerID
-    LEFT JOIN [DB_EXAM].[dbo].[Department] G ON G.examinerID = F.ID
+    LEFT JOIN [Department] G ON G.examinerID = F.ID
     WHERE E.status = 1
     GROUP BY G.location, F.ID
 )
@@ -258,7 +258,35 @@ GROUP BY [Department];
     LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
     LEFT JOIN Course C ON C.ID = EB.courseID
     LEFT JOIN Semester SE ON SE.ID = C.semesterID
-    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode 
+    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode AND RE.status = 1
+  `,
+  getFinishedExamSlot:
+    `
+  SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+    FROM ExamSlot ES 
+    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    LEFT JOIN Course C ON C.ID = EB.courseID
+    LEFT JOIN Semester SE ON SE.ID = C.semesterID
+    WHERE EX.ID = @examinerID 
+	AND SE.code = @SemesterCode 
+	AND RE.status = 1
+	AND ES.endTime < CAST(GETDATE() AS DATE)
+  `,
+  getUnFinishedExamSlot:
+    `
+  SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
+    FROM ExamSlot ES 
+    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    LEFT JOIN Course C ON C.ID = EB.courseID
+    LEFT JOIN Semester SE ON SE.ID = C.semesterID
+    WHERE EX.ID = @examinerID 
+	AND SE.code = @SemesterCode 
+	AND RE.status = 1
+	AND ES.endTime > CAST(GETDATE() AS DATE)
   `
 };
 

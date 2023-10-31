@@ -114,3 +114,23 @@ exports.getAllAvailableSlot = async function (req, res) {
         }
     })
 }
+
+exports.getAllFinishedSlot = async function (req, res) {
+    examiner.getAllFinishedSlot(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+    })
+}
+
+exports.getAllUnFinishedSlot = async function (req, res) {
+    examiner.getAllUnFinishedSlot(req.query.examinerID, req.query.SemesterCode, function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+    })
+}

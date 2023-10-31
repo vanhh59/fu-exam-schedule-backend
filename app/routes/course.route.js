@@ -1,14 +1,15 @@
 module.exports = function (app) {
     var courseController = require('../controllers/course.controller');
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
-    
+
     //route lấy tất cả
     app.get('/course', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getListAll);
     //route lấy theo id
     app.get('/course/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getListByID);
-    
+
     //route lấy theo subjectID
     app.get('/course/:subjectID', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getCourseBySubjectID);
+
     //route lấy theo name
     app.get('/course/:name', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), courseController.getByName);
 

@@ -3,7 +3,6 @@ module.exports = function (app) {
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route lấy tất cả
-
     app.get('/classroom', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), classRoomController.getListAll);
     //route lấy theo id
 

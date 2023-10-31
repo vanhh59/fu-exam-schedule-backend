@@ -152,6 +152,36 @@ module.exports = class Examiner {
       });
   }
 
+  async getAllFinishedSlot(examinerID, SemesterCode, result) {
+    let pool = await conn;
+    let sqlQuery = queries.getFinishedExamSlot;
+    return await pool.request()
+      .input('examinerID', sql.VarChar, examinerID)
+      .input('SemesterCode', sql.VarChar, SemesterCode)
+      .query(sqlQuery, function (error, data) {
+        if (error) {
+          result(true, null);
+        } else {
+          result(null, data.recordset);
+        }
+      });
+  }
+
+  async getAllUnFinishedSlot(examinerID, SemesterCode, result) {
+    let pool = await conn;
+    let sqlQuery = queries.getUnFinishedExamSlot;
+    return await pool.request()
+      .input('examinerID', sql.VarChar, examinerID)
+      .input('SemesterCode', sql.VarChar, SemesterCode)
+      .query(sqlQuery, function (error, data) {
+        if (error) {
+          result(true, null);
+        } else {
+          result(null, data.recordset);
+        }
+      });
+  }
+
   async getExaminerExamRooms(examinerID, SemesterCode, result) {
     let pool = await conn;
     let sqlQuery = queries.getExamRoomByExaminerID;
