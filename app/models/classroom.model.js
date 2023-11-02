@@ -1,5 +1,5 @@
 var { conn, sql } = require('../../connect');
-const { getListByID, getByCode, getListAll } = require('../controllers/classroom.controller');
+
 module.exports = class classroom {
     async getListAll(result) {
         var pool = await conn;

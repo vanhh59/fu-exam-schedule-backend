@@ -102,7 +102,7 @@ authRouter.post('/register', (req, res) => {
 });
 
 // Chức năng phân quyền dành cho role Admin
-authRouter.post('/authorize', isAuthorized(["Admin"]), (req, res) => {
+authRouter.post('/authorize', isAuthenticated, isAuthorized(["Admin"]), (req, res) => {
   user.authorizeUser(req.body, (err, data) => {
     if (err) {
       res.status(400).send({ result: data, error: err });
@@ -111,5 +111,20 @@ authRouter.post('/authorize', isAuthorized(["Admin"]), (req, res) => {
     }
   });
 });
+
+authRouter.get(
+  "/get-account",
+  isAuthenticated,
+  isAuthorized(["Admin"]),
+  (req, res) => {
+    user.getAllUsers(function (err, data) {
+      if (err) {
+        res.status(400).send({ result: data, error: err });
+      } else {
+        res.status(200).send({ result: data, error: err });
+      }
+    });
+  }
+);
 
 module.exports = authRouter;

@@ -16,7 +16,7 @@ const app = express();
 
 // Configure CORS to allow requests only from localhost:3000
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'https://fu-exam-schedule.vercel.app'],
     credentials: true,
 };
 
@@ -53,6 +53,7 @@ require('./app/routes/subject.route')(app);
 require('./app/routes/login.route')(app);
 require('./app/routes/dashboard.route')(app);
 require('./app/routes/download.route')(app);
+require('./app/routes/examRoom.router')(app);
 
 //mở server tại port 4000
 app.listen(4000, function () {

@@ -23,6 +23,16 @@ exports.getListByID = async function (req, res) {
   });
 };
 
+exports.getSubjectIDSubjectNameByExamSlotID = async function (req, res) {
+  examSlot.getSubjectIDSubjectNameByExamSlotID(req.params.id, function (err, data) {
+    if (err) {
+      res.status(400).send({ result: data, error: err });
+    } else {
+      res.status(200).send({ result: data, error: err });
+    }
+  });
+};
+
 exports.createExamSlot = async function (req, res) {
   examSlot.create(req.body, function (err, data) {
     if (err) {

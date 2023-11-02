@@ -42,8 +42,13 @@ const queries = {
   WHERE C.ID = @courseID;
   INSERT INTO Subject_Slot (examSlotID, subjectID, status)
   VALUES (@examSlotID, @subjectID, 1);
-  SELECT @subjectID as subjectID, @subjectName as subjectName, @courseID1 as courseID;
+  SELECT @subjectID as subjectID, @subjectName as subjectName, @courseID1 as courseID, @examSlotID as examSlotID;
   COMMIT`,
+  getSubjectIDSubjectNameByExamSlotID: `SELECT S.name as subjectName, S.ID as subjectID, ES.ID as examSlotID FROM ExamSlot AS ES
+  INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+  INNER JOIN Course AS C ON EB.courseID = C.ID
+  INNER JOIN Subject AS S ON C.subjectID = S.ID
+  WHERE ES.ID = @examSlotID`,
   register: `INSERT INTO Register(examinerID, examSlotID, status)
     VALUES (@examinerID, @examSlotID, 0)`,
   registerUser: `BEGIN TRANSACTION;
