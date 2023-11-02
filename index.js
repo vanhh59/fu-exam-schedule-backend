@@ -49,6 +49,10 @@ require('./app/routes/login.route')(app);
 require('./app/routes/dashboard.route')(app);
 require('./app/routes/download.route')(app);
 
+app.get("/", (req,res) => {
+    req.session
+})
+
 //mở server tại port 4000
 app.listen(4000, function () {
     console.log("Server is running at http://localhost:4000");
