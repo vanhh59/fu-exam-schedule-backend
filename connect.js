@@ -27,6 +27,7 @@ var config = {
 //     }
 // };
 
+
 var conn = new sql.ConnectionPool(config).connect()
     .then(pool => {
         console.log("Database connection is successful.");
