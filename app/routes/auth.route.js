@@ -3,7 +3,7 @@ const express = require('express');
 const User = require('../models/users.model');
 const user = new User();
 const axios = require('axios');
-
+const session = require('express-session');
 
 const { isAuthorized } = require('../controllers/auth.controller');
 const authRouter = express.Router();
@@ -31,8 +31,8 @@ authRouter.get('/login', async (req, res) => {
 
     // const userEmail = userInfoResponse.data.email;
 
-  
-    
+
+
     // Respond with the user's email
     res.json({ email: 'nguyen huy khai' });
   } catch (error) {
@@ -49,14 +49,11 @@ authRouter.post('/login', (req, res) => {
       console.error(err);
       res.status(500).send('Internal Server Error');
       return;
-    }
-    if (user) {
-      // User found, store user information in the session
-      req.session.user = user;
-      console.log(req.session);
-      res.status(200).send({message: 'Login successful', userInfo: user});
     } else {
-      res.status(401).send('Email invalid');
+      // User found, store user information in the session
+      session.user = user;
+      console.log(session);
+      res.status(200).send({ message: 'Login successful', userInfo: user });
     }
   });
 });
@@ -94,7 +91,7 @@ authRouter.post('/register', (req, res) => {
         } else {
           // User found, store user information in the session
           req.session.user = user;
-          res.status(200).send({message: 'Register successful', role: 'Student'});
+          res.status(200).send({ message: 'Register successful', role: 'Student' });
           return;
         }
       });
@@ -107,14 +104,14 @@ authRouter.post('/authorize', isAuthorized(["Admin"]), (req, res) => {
     if (err) {
       res.status(400).send({ result: data, error: err });
     } else {
-      res.status(200).send({ result: data, message:`Authorize Successful for user ${req.body.ID}`, role: `${req.body.Role}`, error: err });
+      res.status(200).send({ result: data, message: `Authorize Successful for user ${req.body.ID}`, role: `${req.body.Role}`, error: err });
     }
   });
 });
 
 // Middleware to check if a user is authenticated
 function isAuthenticated(req, res, next) {
-	// if (req.session?.user) {
+  // if (req.session?.user) {
   //   return next();
   // }
   // return res.status(401).send('Unauthorized');
