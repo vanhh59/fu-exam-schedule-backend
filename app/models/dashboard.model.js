@@ -115,6 +115,21 @@ module.exports = class Dashboard {
       });
   }
 
+  async getListExaminerRegister(id, result) {
+    var pool = await conn;
+    var sqlQuery = queries.getListExaminerRegister;
+    return await pool
+    .request()
+    .input("examSlotID", sql.VarChar, id)
+    .query(sqlQuery, function (error, data) {
+      if (data.recordset && data.recordset.length > 0) {
+        result(null, data.recordset);
+      } else {
+        result(true, null);
+      }
+    });
+  }
+
   async importExcelFile(data, result) {
     try {
       var pool = await conn;

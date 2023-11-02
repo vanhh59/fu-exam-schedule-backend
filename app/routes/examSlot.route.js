@@ -11,6 +11,9 @@ module.exports = function (app) {
     //route thêm mới
     // app.post('/examSlot', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.createExamSlot);
 
+    //route lấy examSlot vừa mới tạo, chưa có thông tin, phục vụ cho việc nhập thông tin
+    app.get('/getExamSlotNull', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.getExamSlotNull)
+
     //route update
     app.put('/examSlot/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examSlotController.updateExamSlot);
 

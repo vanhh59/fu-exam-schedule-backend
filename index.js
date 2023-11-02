@@ -17,17 +17,22 @@ const app = express();
 // Configure CORS to allow requests only from localhost:3000
 const corsOptions = {
     origin: 'http://localhost:3000',
+    credentials: true,
 };
+
 
 const port = process.env.PORT || 4000;
 
-app.use(cors(corsOptions))
+app.use(cors({
+    credentials: true,
+    origin: 'http://localhost:3000'
+}))
 app.use(fileUpload());
 app.use(express.json());
 app.use(session({
-  secret: 'local',
-  resave: false,
-  saveUninitialized: false,
+    secret: 'local',
+    resave: false,
+    saveUninitialized: true,
 }));
 app.use(bodyParser.json());
 app.use('/auth', authRouter);
@@ -48,10 +53,6 @@ require('./app/routes/subject.route')(app);
 require('./app/routes/login.route')(app);
 require('./app/routes/dashboard.route')(app);
 require('./app/routes/download.route')(app);
-
-app.get("/", (req,res) => {
-    req.session
-})
 
 //mở server tại port 4000
 app.listen(4000, function () {

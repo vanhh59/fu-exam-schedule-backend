@@ -55,6 +55,7 @@ const queries = {
   INSERT INTO [dbo].[Users] ([ID], [userName], [email], [Role], [status])
   VALUES (@ID, @userName, @email, 'Student', 1)
   COMMIT;`,
+  getListExaminerRegister: `SELECT R.examinerID, R.examSlotID, R.status FROM [dbo].[Register] AS R WHERE R.examSlotID = @examSlotID AND R.status=1`,
   checkEmailIsValid: `SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Users WHERE email = @email) THEN 1 ELSE 0 END AS EmailExists`,
   authorizeUser: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
   addStudentIntoExamRoom: `INSERT INTO [dbo].[Stu_ExamRoom] (examRoomID, studentID, status)
@@ -130,6 +131,7 @@ const queries = {
       WHERE E.status = 1 AND A.code = @SemesterCode
       GROUP BY F.ID ,F.name, A.code
       `,
+      getExamSlotNull: `SELECT ES.ID, ES.examBatchID, ES.startTime, ES.endTime, ES.quantity, ES.status FROM ExamSlot AS ES WHERE ES.quantity = 0 ORDER BY ES.ID DESC`,
   getAvailableSlots: `
     SELECT E.ID, E.startTime, E.endTime, E.status
     FROM ExamSlot E

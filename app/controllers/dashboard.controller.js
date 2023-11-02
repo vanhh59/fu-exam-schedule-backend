@@ -46,6 +46,16 @@ exports.fieldInfoExamSchedule = async function (req, res) {
     });
 }
 
+exports.getListExaminerRegister = async function (req, res) {
+  dashboard.getListExaminerRegister(req.params.id, function (err, data) {
+      if(err) {
+          res.status(400).send({ result: data, message:'Do not have Examiner in this Slot', error: err });
+      } else {
+          res.status(200).send({ result: data, error: err });
+      }
+  });
+}
+
 exports.addStudentIntoExamRoom = async function (req, res) {
   dashboard.addStudentIntoExamRoom(req.body, function (err, data) {
       if(err) {

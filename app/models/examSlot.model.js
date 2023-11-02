@@ -1,4 +1,5 @@
 var { conn, sql } = require('../../connect');
+const queries = require('../sql/Queries');
 module.exports = class ExamSlot {
     async getAll(result) {
         var pool = await conn;
@@ -8,7 +9,7 @@ module.exports = class ExamSlot {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error, null);
                 }
             });
     }
@@ -22,7 +23,20 @@ module.exports = class ExamSlot {
                 if (data.recordset && data.recordset.length > 0) {
                     result(null, data.recordset);
                 } else {
-                    result(true, null);
+                    result(error, null);
+                }
+        });
+    }
+
+    async getExamSlotNull(result) {
+        var pool = await conn;
+        var sqlQuery = queries.getExamSlotNull;
+        return await pool.request()
+            .query(sqlQuery, function (error, data) {
+                if (data.recordset && data.recordset.length > 0) {
+                    result(null, data.recordset);
+                } else {
+                    result(error, null);
                 }
             });
     }
@@ -40,7 +54,7 @@ module.exports = class ExamSlot {
             .input('status', sql.Int, examSlot.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error, null);
                 } else {
                     result(null, data);
                 }
@@ -61,7 +75,7 @@ module.exports = class ExamSlot {
             .input('status', sql.Int, examSlot.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
-                    result(true, null);
+                    result(error, null);
                 } else {
                     result(null, data);
                 }

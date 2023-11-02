@@ -3,15 +3,15 @@ const express = require('express');
 const User = require('../models/users.model');
 const user = new User();
 const axios = require('axios');
+const session = require('express-session');
 
-
-const { isAuthorized } = require('../controllers/auth.controller');
+const { isAuthenticated, isAuthorized } = require('../controllers/auth.controller');
 const authRouter = express.Router();
 
+// Đăng nhập với Google
 authRouter.get('/login', async (req, res) => {
   try {
     const code = req.query.code;
-    console.log("USER EMAIL TESTTTTT: ");
     // Exchange the code for an access token
     const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
       code,
@@ -31,8 +31,8 @@ authRouter.get('/login', async (req, res) => {
 
     // const userEmail = userInfoResponse.data.email;
 
-  
-    
+
+
     // Respond with the user's email
     res.json({ email: 'nguyen huy khai' });
   } catch (error) {
@@ -41,6 +41,7 @@ authRouter.get('/login', async (req, res) => {
   }
 });
 
+// Login thủ công -> Phân quyền
 authRouter.post('/login', (req, res) => {
   const { email } = req.body;
 
@@ -49,19 +50,16 @@ authRouter.post('/login', (req, res) => {
       console.error(err);
       res.status(500).send('Internal Server Error');
       return;
-    }
-    if (user) {
-      // User found, store user information in the session
-      req.session.user = user;
-      console.log(req.session);
-      res.status(200).send({message: 'Login successful', userInfo: user});
     } else {
-      res.status(401).send('Email invalid');
+      // User found, store user information in the session
+      session.user = user;
+      console.log(session);
+      res.status(200).send({ message: 'Login successful', userInfo: user });
     }
   });
 });
 
-
+// Logout
 authRouter.get('/logout', isAuthenticated, (req, res) => {
   // Clear the session and log the user out
   req.session.destroy((err) => {
@@ -74,6 +72,7 @@ authRouter.get('/logout', isAuthenticated, (req, res) => {
   });
 });
 
+// Đăng ký tài khoản
 authRouter.post('/register', (req, res) => {
   const { email } = req.body;
 
@@ -94,7 +93,7 @@ authRouter.post('/register', (req, res) => {
         } else {
           // User found, store user information in the session
           req.session.user = user;
-          res.status(200).send({message: 'Register successful', role: 'Student'});
+          res.status(200).send({ message: 'Register successful', role: 'Student' });
           return;
         }
       });
@@ -102,23 +101,15 @@ authRouter.post('/register', (req, res) => {
   });
 });
 
+// Chức năng phân quyền dành cho role Admin
 authRouter.post('/authorize', isAuthorized(["Admin"]), (req, res) => {
   user.authorizeUser(req.body, (err, data) => {
     if (err) {
       res.status(400).send({ result: data, error: err });
     } else {
-      res.status(200).send({ result: data, message:`Authorize Successful for user ${req.body.ID}`, role: `${req.body.Role}`, error: err });
+      res.status(200).send({ result: data, message: `Authorize Successful for user ${req.body.ID}`, role: `${req.body.Role}`, error: err });
     }
   });
 });
-
-// Middleware to check if a user is authenticated
-function isAuthenticated(req, res, next) {
-	// if (req.session?.user) {
-  //   return next();
-  // }
-  // return res.status(401).send('Unauthorized');
-  return next();
-}
 
 module.exports = authRouter;
