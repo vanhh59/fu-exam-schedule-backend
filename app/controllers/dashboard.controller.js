@@ -1,3 +1,4 @@
+const flash = require('express-flash');
 var { conn, sql } = require('../../connect');
 
 // Import services DAO
@@ -86,7 +87,6 @@ exports.updateRegister = async function (req, res) {
 }
 
 exports.importExcelFile = async function (req, res) {
-  console.log(req.files);
   try {
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).send("No files were uploaded.");
@@ -95,10 +95,9 @@ exports.importExcelFile = async function (req, res) {
     const importExcelResult = await new Promise((resolve, reject) => {
       dashboard.importExcelFile(req, (err, data) => {
         if (err) {
-          reject(err);
-        } else {
-          resolve(data);
+          return reject(err);
         }
+        resolve(data);
       });
     });
 
@@ -108,42 +107,42 @@ exports.importExcelFile = async function (req, res) {
         dashboard.updateQuantityExamSlot(req.body, (err, data) => {
           if (err) {
             console.log(err);
-            reject(err);
-          } else {
-            console.log(data);
-            resolve(data);
+            return reject(err);
           }
+          console.log(data);
+          resolve(data);
         });
       });
-      
-      if (flag) {
-        const result = dashboard.sendMail(req.body);
-        switch (result) {
-          case 1:
-            console.log("The exam start date have already bypass.");
-            break;
-          case 2:
-            console.log("There weren't any students in room.");
-            break;
-          case 3:
-            console.log("The email failed to send.");
-            break;
 
-          default:
-            console.log("The email sent successfully.");
-            break;
-        }
+      // if (!flag) {
+      //   const result = dashboard.sendMail(req.body);
+      //   switch (result) {
+      //     case 1:
+      //       console.log("The exam start date has already passed.");
+      //       break;
+      //     case 2:
+      //       console.log("There weren't any students in the room.");
+      //       break;
+      //     case 3:
+      //       console.log("The email failed to send.");
+      //       break;
+      //     default:
+      //       console.log("The email sent successfully.");
+      //       break;
+      //   }
+      // }
+
+      if (importExcelResult) {
+        res.status(200).send({ success: true, message:"Import excel successfully." });
+      } else {
+        res.status(400).send({ success: true, message:"Import excel fail." });
       }
-
-      res.send({
-        importExcelResult,
-        updateQuantityResult,
-      });
     } else {
-      res.status(400).send("Import failed. Update skipped.");
+      console.log("Import failed. Update skipped.");
+      res.status(400).send({ success: true, message:"Import excel fail." });
     }
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).send("An error occurred while processing the file.");
+    res.status(400).send({ success: true, message:"Import excel fail." });
   }
 };

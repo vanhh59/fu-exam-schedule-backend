@@ -134,7 +134,6 @@ module.exports = class Dashboard {
     try {
       var pool = await conn;
       const excelFile = data.files.excelFile;
-      console.log(excelFile);
       const workbook = new exceljs.Workbook();
       await workbook.xlsx.load(excelFile.data);
 
@@ -148,7 +147,6 @@ module.exports = class Dashboard {
           array.push(row.getCell(i).value);
         }
 
-        console.log(array);
         var sqlQuery = queries.importExcelFile;
 
         const handleData = async () => {

@@ -1,6 +1,6 @@
 const queries = {
   getExamSchedule: `SELECT
-	ES.ID AS 'examSlotID',
+	  ES.ID AS 'examSlotID',
     C.name AS 'courseName',
     C.subjectID,
     C.instructor,
