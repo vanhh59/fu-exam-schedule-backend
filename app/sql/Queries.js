@@ -320,13 +320,14 @@ GROUP BY [Department];
   FROM ExamSlot e
   WHERE e.startTime = CAST(GETDATE() AS DATE)
   `,
-  getABC:
+  getAllSalariesEachSemester:
     `
-  SELECT *
-  FROM Examiner ex
-  JOIN Register r ON ex.ID = r.examinerID
-  JOIN ExamSlot es ON r.examSlotID = es.ID
-  WHERE CAST(es.startTime AS DATE) = CAST(GETDATE() AS DATE);
+    SELECT A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      FROM Semester A 
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      GROUP BY A.code, A.ID
   `
 };
 

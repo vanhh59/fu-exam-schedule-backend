@@ -25,7 +25,7 @@ const port = process.env.PORT || 4000;
 
 app.use(cors({
     credentials: true,
-    origin: 'http://localhost:3000'
+    origin: '*'
 }))
 app.use(fileUpload());
 app.use(express.json());

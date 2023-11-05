@@ -51,3 +51,13 @@ exports.deleteByID = async function (req, res) {
     }
   });
 };
+
+exports.getAllSalariesEachSemester = async function (req, res) {
+  semester.getAllSalariesEachSemester(function (err, data) {
+    if (err) {
+      res.status(400).send({ result: data, error: err });
+    } else {
+      res.status(200).send({ result: data, error: err });
+    }
+  });
+};

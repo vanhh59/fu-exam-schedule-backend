@@ -9,9 +9,10 @@ const { isAuthorized } = require('../controllers/auth.controller');
 const authRouter = express.Router();
 
 authRouter.get('/login', async (req, res) => {
+  console.log(req);
   try {
     const code = req.query.code;
-    console.log("USER EMAIL TESTTTTT: ");
+    console.log("USER EMAIL TESTTTTT: ", code);
     // Exchange the code for an access token
     const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
       code,
