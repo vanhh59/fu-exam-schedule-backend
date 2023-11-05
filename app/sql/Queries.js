@@ -120,7 +120,7 @@ const queries = {
       GROUP BY F.ID ,F.name, A.code
       `,
   getAllIncome: `
-      SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
       FROM Semester A 
       LEFT JOIN Course B ON A.ID = B.semesterID
       LEFT JOIN ExamBatch C ON C.courseID = B.ID
@@ -128,7 +128,7 @@ const queries = {
       LEFT JOIN Register E ON E.examSlotID = D.ID
       LEFT JOIN Examiner F ON F.ID = E.examinerID
       WHERE E.status = 1 AND A.code = @SemesterCode
-      GROUP BY F.ID ,F.name, A.code
+      GROUP BY F.ID ,F.name, A.code, A.ID
       `,
   getAvailableSlots: `
     SELECT E.ID, E.startTime, E.endTime, E.status
@@ -304,6 +304,30 @@ GROUP BY [Department];
 	AND RE.status = 1
 	AND ES.endTime > CAST(GETDATE() AS DATE)
   `,
+  getRegisteredInformation:
+    `
+    SELECT E.ID AS 'Examiner ID', E.name, E.email, E.experienceYears,
+    E.specialization, ES.ID as 'Exam Slot ID', ES.startTime, ES.endTime,
+    ES.quantity
+    FROM Examiner E 
+    LEFT JOIN Register R ON E.ID = R.examinerID
+    LEFT JOIN ExamSlot ES ON ES.ID = R.examSlotID
+    WHERE E.ID = @examinerID AND ES.ID = @examSlotID
+  `,
+  getCurrentDateExamSlot:
+    `
+  SELECT *
+  FROM ExamSlot e
+  WHERE e.startTime = CAST(GETDATE() AS DATE)
+  `,
+  getABC:
+    `
+  SELECT *
+  FROM Examiner ex
+  JOIN Register r ON ex.ID = r.examinerID
+  JOIN ExamSlot es ON r.examSlotID = es.ID
+  WHERE CAST(es.startTime AS DATE) = CAST(GETDATE() AS DATE);
+  `
 };
 
 module.exports = queries;
