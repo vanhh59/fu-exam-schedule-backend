@@ -11,6 +11,12 @@ module.exports = function (app) {
     //route lấy theo email
     app.get('/examiner/email/:email', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getExaminerByEmail);
 
+     //lấy thông tin đăng kí của giám thị
+     app.get('/examiner/registered/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getRegistered)
+
+     //lấy slot thi trong hôm nay
+     app.get('/examiner/examslot/current', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getCurrentDateExamSlot)
+
     //route lấy lương trog 1 semester
     app.get('/examiner/income/specify/', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getIncome)
 

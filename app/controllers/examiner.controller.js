@@ -134,3 +134,23 @@ exports.getAllUnFinishedSlot = async function (req, res) {
         }
     })
 }
+
+exports.getRegistered = async function (req, res) {
+    examiner.getRegistered(function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+    })
+}
+
+exports.getCurrentDateExamSlot = async function (req, res) {
+    examiner.getCurrentDateExamSlot(function (err, data) {
+        if (err) {
+            res.status(400).send({ result: data, error: err });
+        } else {
+            res.status(200).send({ result: data, error: err });
+        }
+    })
+}

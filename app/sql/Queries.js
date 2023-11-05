@@ -1,6 +1,6 @@
 const queries = {
   getExamSchedule: `SELECT
-	  C.ID AS 'examSlotID',
+	ES.ID AS 'examSlotID',
     C.name AS 'courseName',
     C.subjectID,
     C.instructor,
@@ -126,7 +126,7 @@ const queries = {
       GROUP BY F.ID ,F.name, A.code
       `,
   getAllIncome: `
-      SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
       FROM Semester A 
       LEFT JOIN Course B ON A.ID = B.semesterID
       LEFT JOIN ExamBatch C ON C.courseID = B.ID
@@ -134,9 +134,9 @@ const queries = {
       LEFT JOIN Register E ON E.examSlotID = D.ID
       LEFT JOIN Examiner F ON F.ID = E.examinerID
       WHERE E.status = 1 AND A.code = @SemesterCode
-      GROUP BY F.ID ,F.name, A.code
+      GROUP BY F.ID ,F.name, A.code, A.ID
       `,
-      getExamSlotNull: `SELECT ES.ID, ES.examBatchID, ES.startTime, ES.endTime, ES.quantity, ES.status FROM ExamSlot AS ES WHERE ES.quantity = 0 ORDER BY ES.ID DESC`,
+  getExamSlotNull: `SELECT ES.ID, ES.examBatchID, ES.startTime, ES.endTime, ES.quantity, ES.status FROM ExamSlot AS ES WHERE ES.quantity = 0 ORDER BY ES.ID DESC`,
   getAvailableSlots: `
     SELECT E.ID, E.startTime, E.endTime, E.status
     FROM ExamSlot E
@@ -310,6 +310,26 @@ GROUP BY [Department];
 	AND SE.code = @SemesterCode 
 	AND RE.status = 1
 	AND ES.endTime > CAST(GETDATE() AS DATE)
+  `,
+  getRegisteredInformation: `
+    SELECT E.ID AS 'Examiner ID', E.name, E.email, E.experienceYears,
+    E.specialization, ES.ID as 'Exam Slot ID', ES.startTime, ES.endTime,
+    ES.quantity
+    FROM Examiner E 
+    LEFT JOIN Register R ON E.ID = R.examinerID
+    LEFT JOIN ExamSlot ES ON ES.ID = R.examSlotID
+  `,
+  getCurrentDateExamSlot: `
+  SELECT *
+  FROM ExamSlot e
+  WHERE e.startTime = CAST(GETDATE() AS DATE)
+  `,
+  getABC: `
+  SELECT *
+  FROM Examiner ex
+  JOIN Register r ON ex.ID = r.examinerID
+  JOIN ExamSlot es ON r.examSlotID = es.ID
+  WHERE CAST(es.startTime AS DATE) = CAST(GETDATE() AS DATE);
   `,
 };
 

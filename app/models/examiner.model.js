@@ -13,6 +13,32 @@ module.exports = class Examiner {
     });
   }
 
+  async getCurrentDateExamSlot(result) {
+    let pool = await conn;
+    let sqlQuery = queries.getCurrentDateExamSlot;
+    return await pool.request().query(sqlQuery, function (error, data) {
+      if (data.recordset && data.recordset.length > 0) {
+        result(null, data.recordset);
+      } else {
+        result({ message: "Không có slot thi trong ngày hôm nay" }, null);
+      }
+    });
+  }
+
+  async getRegistered(result) {
+    let pool = await conn;
+    let sqlQuery = queries.getRegisteredInformation;
+    return await pool
+      .request()
+      .query(sqlQuery, function (error, data) {
+        if (data.recordset && data.recordset.length > 0) {
+          result(null, data.recordset);
+        } else {
+          result(true, null);
+        }
+      });
+  }
+
   async getByID(id, result) {
     var pool = await conn;
     var sqlQuery = "SELECT * FROM Examiner WHERE ID = @ID";

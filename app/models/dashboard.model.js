@@ -134,7 +134,7 @@ module.exports = class Dashboard {
     try {
       var pool = await conn;
       const excelFile = data.files.excelFile;
-
+      console.log(excelFile);
       const workbook = new exceljs.Workbook();
       await workbook.xlsx.load(excelFile.data);
 
