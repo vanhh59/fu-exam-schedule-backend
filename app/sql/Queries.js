@@ -130,6 +130,17 @@ const queries = {
       WHERE E.status = 1 AND A.code = @SemesterCode
       GROUP BY F.ID ,F.name, A.code, A.ID
       `,
+  getAllIncomeV2: `
+      SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      FROM Semester A 
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      LEFT JOIN Register E ON E.examSlotID = D.ID
+      LEFT JOIN Examiner F ON F.ID = E.examinerID
+      WHERE E.status = 1 
+      GROUP BY F.ID ,F.name, A.code, A.ID
+      `,
   getAvailableSlots: `
     SELECT E.ID, E.startTime, E.endTime, E.status
     FROM ExamSlot E

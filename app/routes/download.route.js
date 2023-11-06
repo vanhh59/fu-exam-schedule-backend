@@ -3,8 +3,8 @@ module.exports = function (app) {
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //Hàm download file excel cho department và examiner
-    app.get("/api/excel/depart-examiner/download", isAuthenticated, isAuthorized(["Admin"]), downloadController.getXlsx);
+    app.get("/api/excel/depart-examiner/download", downloadController.getXlsx);
 
     //Hàm download file excel cho department và examiner
-    app.get("/api/excel/exam-room/download/:id", isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff"]), downloadController.getExamRoomsXlsx)
+    app.get("/api/excel/exam-room/download/:id", downloadController.getExamRoomsXlsx)
 }
