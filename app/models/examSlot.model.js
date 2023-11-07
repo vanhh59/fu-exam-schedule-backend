@@ -105,7 +105,7 @@ module.exports = class ExamSlot {
                 if (error) {
                     result(error, null);
                 } else {
-                    result(null, data);
+                    result(null, data?.rowsAffected[0]);
                 }
             });
     }

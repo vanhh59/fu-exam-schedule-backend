@@ -66,9 +66,13 @@ exports.updateExamSlot = async function (req, res) {
 exports.deleteExamSlot = async function (req, res) {
   examSlot.deleteExamSlot(req.params.id, function (err, data) {
     if (err) {
-      res.status(400).send({ result: data, error: err });
+      res.status(400).send({ isSuccess: false, message: `Ca thi ${req.params.id} không tồn tại`, result: data, error: err });
     } else {
-      res.status(200).send({ result: data, error: err });
+      if (data >= 1) {
+        res.status(200).send({ isSuccess: true, message: `Xóa ca thi ${req.params.id} thành công`, result: data, error: err });
+      } else {
+        res.status(200).send({ isSuccess: false, message: `Ca thi ${req.params.id} không tồn tại`, result: data, error: err });
+      }
     }
   });
 };
