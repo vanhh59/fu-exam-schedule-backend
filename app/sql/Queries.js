@@ -430,7 +430,9 @@ GROUP BY [Department];
   INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
   INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
   INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
-  WHERE ER.ID = @ID`
+  WHERE ER.ID = @ID`,
+  getRegisterWithExaminerInfo: `SELECT R.examSlotID, R.examinerID, E.name, R.status FROM Register AS R
+  INNER JOIN Examiner AS E ON R.examinerID = E.ID`
 };
 
 module.exports = queries;

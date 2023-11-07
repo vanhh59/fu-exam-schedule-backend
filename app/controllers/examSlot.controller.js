@@ -1,17 +1,56 @@
 const { log } = require("util");
 var { conn, sql } = require("../../connect");
-var ExamSlot = require("../models/examSlot.model");
+var Register = require("../models/register.model");
+let ExamSlot = require("../models/examslot.model");
+let register = new Register();
 var examSlot = new ExamSlot();
 
 exports.getListAll = async function (req, res) {
-  examSlot.getAll(function (err, data) {
-    if (err) {
-      res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
+  try {
+    const examSlotData = await new Promise((resolve, reject) => {
+      examSlot.getAll(function (err, data) {
+        if (err) {
+          console.log("ExamSlot Error");
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+
+    const registerData = await new Promise((resolve, reject) => {
+      register.getListAll(function (err, data) {
+        if (err) {
+          console.log("Examiner Error");
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+
+    if (registerData.length > 0 && examSlotData.length > 0) {
+      // Create a mapping of examSlotID to examSlot data
+      let examSlotMap = new Map(examSlotData.map((item) => [item.examSlotID.trim(), { ...item, register: [] }]));
+
+      // Iterate through the register data and match it with the corresponding examSlot data
+      registerData.forEach((registerItem) => {
+        const examSlotData = examSlotMap.get(registerItem.examSlotID.trim());
+        if (examSlotData) {
+          examSlotData.register.push(registerItem);
+        }
+      });
+      
+      res.status(200).send({ ok: true, isSuccess: true, result: [...examSlotMap] });
     } else {
-      res.status(200).send({ ok: true, isSuccess: true, result: data, error: err });
+      res.status(400).send({ ok: false, isSuccess: false });
     }
-  });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send({ ok: false, isSuccess: false, error: error });
+  }
 };
+
 
 exports.getListByID = async function (req, res) {
   examSlot.getByID(req.params.id, function (err, data) {
