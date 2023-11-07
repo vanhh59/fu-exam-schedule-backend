@@ -32,7 +32,7 @@ const queries = {
   SET @numericPart = ISNULL(@numericPart, 0) + 1;
   SET @examSlotID = 'Q0' + CAST(@numericPart AS NVARCHAR(50));
   INSERT INTO ExamSlot (ID, examBatchID, startTime, endTime, quantity, status)
-  VALUES (@examSlotID, @examBatchID, @startTime, @endTime, 0, 0);
+  VALUES (@examSlotID, @examBatchID, @startTime, @endTime, 0, 1);
   DECLARE @subjectID NVARCHAR(50);
   DECLARE @subjectName NVARCHAR(50);
   DECLARE @courseID1 VARCHAR(50);
