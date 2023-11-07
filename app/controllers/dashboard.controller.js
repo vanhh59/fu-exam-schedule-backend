@@ -10,9 +10,9 @@ var dashboard = new Dashboard();
 exports.getExamSchedule = async function (req, res) {
     dashboard.getAllExamSchedule(function (err, data) {
         if(err) {
-            res.status(400).send({ result: data, error: err });
+            res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
         } else {
-            res.status(200).send({ result: data, error: err });
+            res.status(200).send({ ok: true, isSuccess: true, result: data, error: err });
         }
     });
 }
@@ -20,9 +20,9 @@ exports.getExamSchedule = async function (req, res) {
 exports.createExamSchedule = async function (req, res) {
     dashboard.createExamSchedule(req.body, function (err, data) {
         if(err) {
-            res.status(400).send({ result: data, error: err });
+            res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
         } else {
-            res.status(200).send({ result: data[0], message: 'Create ExamSlot and ExamBatch succcessfull', error: err });
+            res.status(200).send({ ok: true, isSuccess: true, result: data[0], message: 'Create ExamSlot and ExamBatch succcessfull', error: err });
         }
     });
 }
@@ -30,9 +30,13 @@ exports.createExamSchedule = async function (req, res) {
 exports.register = async function (req, res) {
     dashboard.register(req.body, function (err, data) {
         if(err) {
-            res.status(400).send({ result: data, error: err });
+            res.status(400).send({ ok: false, isSuccess: false, result: data, message:'Examiner is already register', error: err });
         } else {
-            res.status(200).send({ result: data, message:'Register successfull', error: err });
+          if(data[0]?.Result) {
+            res.status(200).send({ ok: true, isSuccess: true, result: data[0]?.Result, message:'Register successfull', error: err });
+          } else {
+            res.status(400).send({ ok: false, isSuccess: false, result: data[0]?.Result, message:'ExaminerId is invalid', error: err });
+          }
         }
     });
 }
@@ -40,9 +44,13 @@ exports.register = async function (req, res) {
 exports.fieldInfoExamSchedule = async function (req, res) {
     dashboard.fieldInfoExamSchedule(req.body, function (err, data) {
         if(err) {
-            res.status(400).send({ result: data, error: err });
+            res.status(400).send({ ok: false, isSuccess: false, result: data, error: err});
         } else {
-            res.status(200).send({ result: data, error: err });
+          if (!data[0]?.Result) {
+            res.status(400).send({ ok: false, isSuccess: false, result: data[0]?.Result, message:'Examiner coincides with the time in ExamSlot', error: err });
+          } else {
+            res.status(200).send({ ok: true, isSuccess: true, result: data[0]?.Result, message:'Create ExamRoom successful', error: err });
+          }
         }
     });
 }
@@ -50,9 +58,9 @@ exports.fieldInfoExamSchedule = async function (req, res) {
 exports.getListExaminerRegister = async function (req, res) {
   dashboard.getListExaminerRegister(req.params.id, function (err, data) {
       if(err) {
-          res.status(400).send({ result: data, message:'Do not have Examiner in this Slot', error: err });
+          res.status(400).send({ ok: false, isSuccess: false, result: data, message:'Do not have Examiner in this Slot', error: err });
       } else {
-          res.status(200).send({ result: data, error: err });
+          res.status(200).send({ ok: true, isSuccess: true, result: data, error: err });
       }
   });
 }
@@ -60,9 +68,9 @@ exports.getListExaminerRegister = async function (req, res) {
 exports.addStudentIntoExamRoom = async function (req, res) {
   dashboard.addStudentIntoExamRoom(req.body, function (err, data) {
       if(err) {
-          res.status(400).send({ result: data, error: err });
+          res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
       } else {
-          res.status(200).send({ result: data, message: `Add student ID: ${req.body.studentID} into ExamRoom ID ${req.body.examRoomID} successfull`, error: err });
+          res.status(200).send({ ok: true, isSuccess: true, result: data, message: `Add student ID: ${req.body.studentID} into ExamRoom ID ${req.body.examRoomID} successfull`, error: err });
       }
   });
 }
@@ -70,18 +78,18 @@ exports.addStudentIntoExamRoom = async function (req, res) {
 exports.updateRegister = async function (req, res) {
   dashboard.checkUpdteRegisterIsLessThan3Day(req.body, function (err, data) {
       if(err) {
-          res.status(400).send({ result: data, error: err });
+          res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
       }
       if (data[0].Result == 0) {
         dashboard.updateRegister(req.body, function (err, data) {
           if(err) {
-            res.status(400).send({ result: data, error: err });
+            res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
           } else {
-            res.status(200).send({ result: data, message: `Update successfull register` ,error: err });
+            res.status(200).send({ ok: true, isSuccess: true, result: data, message: `Update successfull register` ,error: err });
           }
         })
       } else {
-        res.status(400).send({ result: data, message: 'Time to update register must be greather then 3 days', error: err });
+        res.status(400).send({ ok: false, isSuccess: false, result: data, message: 'Time to update register must be greather then 3 days', error: err });
       }
   });
 }
@@ -133,16 +141,16 @@ exports.importExcelFile = async function (req, res) {
       // }
 
       if (importExcelResult) {
-        res.status(200).send({ success: true, message:"Import excel successfully." });
+        res.status(200).send({ ok: true, isSuccess: true, message:"Import excel successfully." });
       } else {
-        res.status(400).send({ success: true, message:"Import excel fail." });
+        res.status(400).send({ ok: false, isSuccess: false,  message:"Import excel fail." });
       }
     } else {
       console.log("Import failed. Update skipped.");
-      res.status(400).send({ success: true, message:"Import excel fail." });
+      res.status(400).send({ ok: false, isSuccess: false, message:"Import excel fail." });
     }
   } catch (error) {
     console.error("Error:", error);
-    res.status(400).send({ success: true, message:"Import excel fail." });
+    res.status(400).send({ ok: false, isSuccess: false,  message:"Import excel fail." });
   }
 };

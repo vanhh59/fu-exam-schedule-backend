@@ -22,6 +22,12 @@ const queries = {
     WHERE ES.status = 1
     ORDER BY ES.startTime DESC`,
   getCourseByID: `SELECT * FROM dbo.Course WHERE ID = @courseID`,
+  getExamSlotInfo: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, EB.location, ES.status, C.name FROM ExamSlot AS ES
+  INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+  INNER JOIN Course AS C ON EB.courseID = C.ID`,
+  getExamSlotInfoById: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, EB.location, ES.status, C.name FROM ExamSlot AS ES
+  INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+  INNER JOIN Course AS C ON EB.courseID = C.ID WHERE ES.ID = @ID`,
   createExamSlotAndExamBatch: `BEGIN TRANSACTION;
   INSERT INTO ExamBatch (courseID, code, date, location, status) VALUES (@courseID, @code, @startTime, 'FPTU', 1);
   DECLARE @examBatchID INT;
@@ -49,8 +55,25 @@ const queries = {
   INNER JOIN Course AS C ON EB.courseID = C.ID
   INNER JOIN Subject AS S ON C.subjectID = S.ID
   WHERE ES.ID = @examSlotID`,
-  register: `INSERT INTO Register(examinerID, examSlotID, status)
-    VALUES (@examinerID, @examSlotID, 0)`,
+  register: `BEGIN TRANSACTION;
+  DECLARE @ID VARCHAR(10);
+  DECLARE @email NVARCHAR(50);
+  SELECT @email = U.email
+  FROM [dbo].[Users] AS U
+  WHERE U.ID = @examinerID;
+  SELECT @ID = E.ID
+  FROM [dbo].[Examiner] AS E
+  WHERE E.email = @email;
+  IF @ID IS NULL
+  BEGIN
+    SELECT CAST(0 AS BIT) AS Result;
+  END
+  ELSE
+  BEGIN
+    INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, @examSlotID, 1)
+    SELECT CAST(1 AS BIT) AS Result;
+  END;
+  COMMIT;`,
   registerUser: `BEGIN TRANSACTION;
   DECLARE @ID VARCHAR(200)
   DECLARE @numberId INT
@@ -63,7 +86,29 @@ const queries = {
   getListExaminerRegister: `SELECT R.examinerID, R.examSlotID, R.status FROM [dbo].[Register] AS R WHERE R.examSlotID = @examSlotID AND R.status=1`,
   checkEmailIsValid: `SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Users WHERE email = @email) THEN 1 ELSE 0 END AS EmailExists`,
   authorizeUser: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
-  authorizeUserLecturer: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
+  authorizeUserLecturer: `BEGIN TRANSACTION;
+  UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID;
+  DECLARE @LastID INT;
+  SELECT TOP 1 @LastID = CAST(SUBSTRING(ID, 3, LEN(ID)) AS INT)
+  FROM Examiner
+  WHERE ID LIKE 'EX%'
+  ORDER BY ID DESC;
+  IF @LastID IS NOT NULL
+  BEGIN
+    SET @LastID = @LastID + 1;
+  END
+  ELSE
+  BEGIN
+    SET @LastID = 1;
+  END
+  DECLARE @NewID NVARCHAR(10);
+  DECLARE @name NVARCHAR(200);
+  DECLARE @email NVARCHAR(200);
+  SELECT @name = U.userName, @email = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID;
+  SET @NewID = 'EX' + CAST(@LastID AS NVARCHAR(10));
+  INSERT INTO [dbo].[Examiner] VALUES (@NewID, @name, @email, 0, 'No information yet', 1);
+  SELECT @name, @email, @NewID AS examinerID
+  COMMIT;`,
   addStudentIntoExamRoom: `INSERT INTO [dbo].[Stu_ExamRoom] (examRoomID, studentID, status)
   VALUES (@examRoomID, @studentID, 1)`,
   checkUpdteRegisterIsLessThan3Day: `
@@ -100,6 +145,38 @@ const queries = {
   SET @quantity = (@totalStudent / @capacity) + 5
   SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
   UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examRoomID
+  COMMIT`,
+  test: `BEGIN TRANSACTION;
+  DECLARE @EmailExists BIT;
+  SELECT @EmailExists = CASE
+      WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.examinerID = @examinerID AND ER.examSlotID = @examSlotID) THEN 1
+      ELSE 0
+  END;
+  IF @EmailExists = 1
+  BEGIN
+      SELECT CAST(0 AS BIT) AS Result;
+  END
+  ELSE
+  BEGIN
+    DECLARE @numericPart INT
+    SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT))
+    FROM ExamRoom AS ER
+    SET @numericPart = ISNULL(@numericPart, 0) + 1
+    DECLARE @examRoomID NVARCHAR(50) = 'R0' + CAST(@numericPart AS NVARCHAR(50))
+    INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID)
+    VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, @examinerID)
+    DECLARE @quantity INT
+    DECLARE @capacity INT
+    DECLARE @totalStudent INT
+    SELECT @capacity = CR.capacity FROM ExamRoom as ER
+    INNER JOIN Classroom as CR ON ER.classRoomID = CR.ID
+    WHERE ER.ID = @examRoomID
+    SELECT @totalStudent = COUNT(SE.studentID) FROM Stu_ExamRoom as SE
+    WHERE SE.examRoomID = @examRoomID
+    SET @quantity = (@totalStudent / @capacity) + 5
+    UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examRoomID
+    SELECT CAST(1 AS BIT) AS Result;
+  END;
   COMMIT`,
   importExcelFile: `INSERT INTO Stu_ExamRoom (studentID, examRoomID, status) VALUES (@studentID, @examRoomID, 1)`,
   updateQuantityExamSlot: `BEGIN TRANSACTION;

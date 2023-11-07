@@ -3,7 +3,7 @@ module.exports = function (app) {
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     // Xem lịch thi tổng quan và chi tiết
-    app.get('/exam-schedule', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.getExamSchedule)
+    app.get('/exam-schedule', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), dashboardController.getExamSchedule)
 
     // Tạo một Slot thi
     app.post('/exam-schedule', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.createExamSchedule)
@@ -12,7 +12,7 @@ module.exports = function (app) {
     app.post('/register', isAuthenticated, isAuthorized(['Testing Admin', 'Admin', 'Lecturer']), dashboardController.register)
 
     // Lấy danh sách Examiner đã đăng ký vào ExamSlot với status = true
-    app.get('/exam-slot/examiner/:id', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.getListExaminerRegister)
+    app.get('/exam-slot/examiner/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), dashboardController.getListExaminerRegister)
 
     // Nhập thông tin tạo Exam Room trong một Slot thi
     app.post('/exam-room', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.fieldInfoExamSchedule)

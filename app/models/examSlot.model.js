@@ -3,7 +3,7 @@ const queries = require('../sql/Queries');
 module.exports = class ExamSlot {
     async getAll(result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM ExamSlot";
+        var sqlQuery = queries.getExamSlotInfo
         return await pool.request()
             .query(sqlQuery, function (error, data) {
                 if (data.recordset && data.recordset.length > 0) {
@@ -16,7 +16,7 @@ module.exports = class ExamSlot {
 
     async getByID(id, result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM ExamSlot WHERE ID = @ID";
+        var sqlQuery = queries.getExamSlotInfoById
         return await pool.request()
             .input('ID', sql.VarChar, id)
             .query(sqlQuery, function (error, data) {

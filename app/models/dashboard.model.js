@@ -86,20 +86,16 @@ module.exports = class Dashboard {
       .input("examSlotID", sql.VarChar, data.examSlotID)
       .query(sqlQuery, function (error, data) {
         if (error) {
-          result(error, null);
+          result(error.message, null);
         } else {
-          result(null, data);
+          result(null, data?.recordset);
         }
       });
   }
 
   async fieldInfoExamSchedule(data, result) {
     var pool = await conn;
-    var sqlQuery = queries.fieldInfoExamSchedule;
-    console.log(data.examinerID);
-    console.log(data.examSlotID);
-    console.log(data.subjectID);
-    console.log(data.examinerID);
+    var sqlQuery = queries.test;
     return await pool
       .request()
       .input("classRoomID", sql.VarChar, data.classRoomID)
@@ -108,9 +104,9 @@ module.exports = class Dashboard {
       .input("examinerID", sql.VarChar, data.examinerID)
       .query(sqlQuery, function (error, data) {
         if (error) {
-          result(error, null);
+          result(error?.message, null);
         } else {
-          result(null, data);
+          result(null, data?.recordsets[0]);
         }
       });
   }

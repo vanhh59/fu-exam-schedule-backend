@@ -44,7 +44,6 @@ authRouter.get('/login', async (req, res) => {
 // Login thủ công -> Phân quyền
 authRouter.post('/login', (req, res) => {
   const { email } = req.body;
-
   user.getUsersByEmail(email, (err, user) => {
     if (err) {
       console.error(err);
@@ -54,7 +53,7 @@ authRouter.post('/login', (req, res) => {
       // User found, store user information in the session
       session.user = user;
       console.log(session);
-      res.status(200).send({ message: 'Login successful', userInfo: user });
+      res.status(200).send({ ok:true, message: 'Login successful', userInfo: user });
     }
   });
 });
