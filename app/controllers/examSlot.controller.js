@@ -1,7 +1,7 @@
 const { log } = require("util");
 var { conn, sql } = require("../../connect");
 var Register = require("../models/register.model");
-let ExamSlot = require("../models/examslot.model");
+let ExamSlot = require("../models/examSlot.model");
 let register = new Register();
 var examSlot = new ExamSlot();
 
