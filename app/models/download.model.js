@@ -93,7 +93,7 @@ module.exports = class Download {
 
     async findExaminersSalary() {
         let pool = await conn;
-        let sqlQueryExaminersSalary = queries.getAllIncome;
+        let sqlQueryExaminersSalary = queries.getAllIncomeV2;
         const result = await pool.request().query(sqlQueryExaminersSalary);
         if (result.recordset && result.recordset.length > 0) {
             console.log(result);

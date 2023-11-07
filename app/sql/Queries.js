@@ -63,6 +63,7 @@ const queries = {
   getListExaminerRegister: `SELECT R.examinerID, R.examSlotID, R.status FROM [dbo].[Register] AS R WHERE R.examSlotID = @examSlotID AND R.status=1`,
   checkEmailIsValid: `SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Users WHERE email = @email) THEN 1 ELSE 0 END AS EmailExists`,
   authorizeUser: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
+  authorizeUserLecturer: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
   addStudentIntoExamRoom: `INSERT INTO [dbo].[Stu_ExamRoom] (examRoomID, studentID, status)
   VALUES (@examRoomID, @studentID, 1)`,
   checkUpdteRegisterIsLessThan3Day: `
@@ -134,6 +135,17 @@ const queries = {
       LEFT JOIN Register E ON E.examSlotID = D.ID
       LEFT JOIN Examiner F ON F.ID = E.examinerID
       WHERE E.status = 1 AND A.code = @SemesterCode
+      GROUP BY F.ID ,F.name, A.code, A.ID
+      `,
+  getAllIncomeV2: `
+      SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      FROM Semester A 
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      LEFT JOIN Register E ON E.examSlotID = D.ID
+      LEFT JOIN Examiner F ON F.ID = E.examinerID
+      WHERE E.status = 1 
       GROUP BY F.ID ,F.name, A.code, A.ID
       `,
   getExamSlotNull: `SELECT ES.ID, ES.examBatchID, ES.startTime, ES.endTime, ES.quantity, ES.status FROM ExamSlot AS ES WHERE ES.quantity = 0 ORDER BY ES.ID DESC`,
@@ -318,18 +330,20 @@ GROUP BY [Department];
     FROM Examiner E 
     LEFT JOIN Register R ON E.ID = R.examinerID
     LEFT JOIN ExamSlot ES ON ES.ID = R.examSlotID
+    WHERE E.ID = @examinerID AND ES.ID = @examSlotID
   `,
   getCurrentDateExamSlot: `
   SELECT *
   FROM ExamSlot e
   WHERE e.startTime = CAST(GETDATE() AS DATE)
   `,
-  getABC: `
-  SELECT *
-  FROM Examiner ex
-  JOIN Register r ON ex.ID = r.examinerID
-  JOIN ExamSlot es ON r.examSlotID = es.ID
-  WHERE CAST(es.startTime AS DATE) = CAST(GETDATE() AS DATE);
+  getAllSalariesEachSemester: `
+    SELECT A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
+      FROM Semester A 
+      LEFT JOIN Course B ON A.ID = B.semesterID
+      LEFT JOIN ExamBatch C ON C.courseID = B.ID
+      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+      GROUP BY A.code, A.ID
   `,
 };
 

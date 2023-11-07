@@ -1,4 +1,5 @@
 var { conn, sql } = require('../../connect');
+const queries = require("../sql/Queries");
 
 // CREATE TABLE Semester
 // (
@@ -91,5 +92,17 @@ module.exports = class Semester {
                     result(null, data);
                 }
             });
+    }
+
+    async getAllSalariesEachSemester(result) {
+        let pool = await conn;
+        let sqlQuery = queries.getAllSalariesEachSemester;
+        return await pool.request().query(sqlQuery, function (error, data) {
+            if (data.recordset && data.recordset.length > 0) {
+                result(null, data.recordset);
+            } else {
+                result(true, null);
+            }
+        });
     }
 }

@@ -90,5 +90,20 @@ module.exports = class Users {
                 result(null, data);
             }
         });
-}
+  }
+
+  async authorizeUserLecturer(item, result) {
+    var pool = await conn;
+    var sqlQuery = queries.authorizeUser;
+    return await pool.request()
+    .input('ID', sql.VarChar, item.ID)
+    .input('Role', sql.VarChar, item.Role)
+        .query(sqlQuery, function (error, data) {
+            if (error) {
+                result(error.message, null);
+            } else {
+                result(null, data);
+            }
+        });
+  }
 };

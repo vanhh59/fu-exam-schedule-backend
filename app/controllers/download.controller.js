@@ -11,7 +11,7 @@ exports.getXlsx = async function (req, res) {
         "Content-Disposition",
         "attachment; filename=" + "Salaries.xlsx"
     );
-    const workbook = download.downloadXlsx();
+    const workbook = await download.downloadXlsx();
     if (workbook != null) {
         return workbook.xlsx.write(res).then(function () {
             res.status(200).end();
@@ -30,7 +30,7 @@ exports.getExamRoomsXlsx = async function (req, res) {
         "Content-Disposition",
         "attachment; filename=" + "Salaries.xlsx"
     );
-    download.downloadExamRoomXlsx(req.params.id);
+    const workbook = await download.downloadExamRoomXlsx(req.params.id);
     if (workbook != null) {
         return workbook.xlsx.write(res).then(function () {
             res.status(200).end();

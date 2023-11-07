@@ -3,7 +3,10 @@ module.exports = function (app) {
     const { isAuthorized, isAuthenticated } = require('../controllers/auth.controller');
 
     //route get all
-    app.get('/semester', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), semesterController.getListAll);
+    // app.get('/semester', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), semesterController.getListAll);
+
+    //Lấy thu nhập của mỗi semester
+    app.get('/semester', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), semesterController.getAllSalariesEachSemester);
 
     //route get by id
     app.get('/semester/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), semesterController.getListByID);
