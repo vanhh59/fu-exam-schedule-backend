@@ -22,10 +22,10 @@ const queries = {
     WHERE ES.status = 1
     ORDER BY ES.startTime DESC`,
   getCourseByID: `SELECT * FROM dbo.Course WHERE ID = @courseID`,
-  getExamSlotInfo: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, EB.location, ES.status, C.name FROM ExamSlot AS ES
+  getExamSlotInfo: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, ES.quantity, EB.location, ES.status, C.name FROM ExamSlot AS ES
   INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
   INNER JOIN Course AS C ON EB.courseID = C.ID`,
-  getExamSlotInfoById: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, EB.location, ES.status, C.name FROM ExamSlot AS ES
+  getExamSlotInfoById: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, ES.quantity, EB.location, ES.status, C.name FROM ExamSlot AS ES
   INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
   INNER JOIN Course AS C ON EB.courseID = C.ID WHERE ES.ID = @ID`,
   createExamSlotAndExamBatch: `BEGIN TRANSACTION;
@@ -422,11 +422,11 @@ GROUP BY [Department];
       LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
       GROUP BY A.code, A.ID
   `,
-  getInfoExamRoom: `SELECT ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
+  getInfoExamRoom: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
   INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
   INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
   INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID`,
-  getInfoExamRoomById: `SELECT ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
+  getInfoExamRoomById: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
   INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
   INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
   INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID

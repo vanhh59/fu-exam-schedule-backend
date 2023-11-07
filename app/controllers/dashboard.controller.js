@@ -117,7 +117,6 @@ exports.importExcelFile = async function (req, res) {
             console.log(err);
             return reject(err);
           }
-          console.log(data);
           resolve(data);
         });
       });
