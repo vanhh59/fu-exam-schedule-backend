@@ -345,6 +345,15 @@ GROUP BY [Department];
       LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
       GROUP BY A.code, A.ID
   `,
+  getInfoExamRoom: `SELECT ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
+  INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
+  INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
+  INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID`,
+  getInfoExamRoomById: `SELECT ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
+  INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
+  INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
+  INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
+  WHERE ER.ID = @ID`
 };
 
 module.exports = queries;
