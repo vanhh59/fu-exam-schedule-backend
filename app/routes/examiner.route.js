@@ -35,6 +35,9 @@ module.exports = function (app) {
     //route xem danh sách những exam slot mà giám thị đó chưa coi
     app.get('/examiner/slot-unfinished/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getAllUnFinishedSlot)
 
+    // route lấy tông tin của examiner, các ca thi đã hoàn thành gồm thông tin cụ thể và tổng tiền lương qua mỗi kỳ
+    app.get('/examiner/full-info-salary/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getInfoSalaryAndExaminerAndExamSlotAndExamRoom)
+
     //route thêm mới
     app.post('/examiner', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.createNewExaminer);
 

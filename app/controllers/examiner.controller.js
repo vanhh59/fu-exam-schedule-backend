@@ -22,6 +22,20 @@ exports.getListByID = async function (req, res) {
     });
 }
 
+exports.getInfoSalaryAndExaminerAndExamSlotAndExamRoom = async function (req, res) {
+    examiner.getInfoSalaryAndExaminerAndExamSlotAndExamRoom(req.params.id, function (err, data) {
+        if (err) {
+            res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
+        } else {
+            if (data[0][0]?.ID) {
+                res.status(200).send({ ok: true, isSuccess: true, result: data, error: err });
+            } else {
+                res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
+            }
+        }
+    });
+}
+
 exports.getExaminerByEmail = async function (req, res) {
     examiner.getByEmail(req.params.email, function (err, data) {
         if (err) {

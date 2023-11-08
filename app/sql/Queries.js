@@ -59,7 +59,8 @@ const queries = {
   DECLARE @ID VARCHAR(10);
   DECLARE @userID VARCHAR(10);
   DECLARE @email NVARCHAR(50);
-  SELECT @email = U.email, @userID = U.ID
+  DECLARE @Role VARCHAR(100);
+  SELECT @email = U.email, @userID = U.ID, @Role = U.Role
   FROM [dbo].[Users] AS U
   WHERE U.ID = @examinerID;
   SELECT @ID = E.ID
@@ -71,8 +72,8 @@ const queries = {
   END
   ELSE
   BEGIN
-    INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, @examSlotID, 1)
-    SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID;
+    INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, '', 1)
+    SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID, @Role AS Role;
   END;
   COMMIT;`,
   registerUser: `BEGIN TRANSACTION;
@@ -282,7 +283,17 @@ GROUP BY [Department];
   checkAuthorize: `SELECT U.Role, U.userName FROM dbo.Users AS U
   WHERE U.email = '@email' AND U.Role = '@role'`,
   getAllUsers: `SELECT U.Role, U.userName, U.email FROM dbo.Users AS U`,
-  getUserByEmail: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.email = @email`,
+  getUserByEmail: `BEGIN TRANSACTION;
+  DECLARE @examinerID VARCHAR(50);
+  DECLARE @emailexaminer NVARCHAR(200);
+  DECLARE @Role NVARCHAR(50);
+  DECLARE @userName NVARCHAR(200);
+  DECLARE @ID VARCHAR(50);
+  SELECT @emailexaminer = U.email, @Role = U.Role, @ID = U.ID, @userName = U.userName
+  FROM dbo.Users AS U WHERE U.email = @email;
+  SELECT @examinerID = E.ID FROM Examiner AS E WHERE E.email = @emailexaminer;
+  SELECT @examinerID AS examinerID, @emailexaminer AS email, @Role AS Role, @userName AS userName, @ID AS ID
+  COMMIT;`,
   getUserByID: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.ID = @ID`,
   isConflictDuringStartEndTime: `
   DECLARE @NewStartTime DATETIME = @startTime;
@@ -445,7 +456,24 @@ GROUP BY [Department];
   INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
   WHERE ER.ID = @ID`,
   getRegisterWithExaminerInfo: `SELECT R.examSlotID, R.examinerID, E.name, R.status FROM Register AS R
-  INNER JOIN Examiner AS E ON R.examinerID = E.ID`
+  INNER JOIN Examiner AS E ON R.examinerID = E.ID`,
+  getInfoSalaryAndExaminerAndExamSlotAndExamRoom: `BEGIN TRANSACTION;
+	SELECT E.ID, E.email, E.name, E.experienceYears, E.specialization, E.status FROM Examiner AS E WHERE ID = @examinerID
+	SELECT EM.ID AS examinerID,EM.name AS examinerName,
+	S.code AS semesterCode, C.name AS courseName,
+	C.subjectID, ES.startTime, ES.endTime,
+	ES.ID AS examSlot, ER.ID AS examRoom,
+	ER.classRoomID AS classRoomCode, (SUM(DATEDIFF(MINUTE,ES.startTime, ES.endTime)) / 60 * 100000) as 'salary' 
+    FROM Semester S
+    INNER JOIN Course C ON S.ID = C.semesterID
+    INNER JOIN ExamBatch E ON E.courseID = C.ID
+    INNER JOIN ExamSlot ES ON ES.examBatchID = E.ID
+    INNER JOIN Register R ON R.examSlotID = ES.ID
+    INNER JOIN Examiner EM ON EM.ID = R.examinerID
+	INNER JOIN ExamRoom ER ON ER.examSlotID = ES.ID
+    WHERE E.status = 1 AND EM.ID = @examinerID AND ES.endTime < CAST(GETDATE() AS DATE)
+    GROUP BY EM.ID ,EM.name, S.code, C.name, C.subjectID, ES.startTime, ES.endTime, ES.ID, ER.ID, ER.classRoomID
+	COMMIT;`
 };
 
 module.exports = queries;

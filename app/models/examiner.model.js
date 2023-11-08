@@ -24,6 +24,21 @@ module.exports = class Examiner {
       }
     });
   }
+  
+  async getInfoSalaryAndExaminerAndExamSlotAndExamRoom(examinerID, result) {
+    var pool = await conn;
+    var sqlQuery = queries.getInfoSalaryAndExaminerAndExamSlotAndExamRoom;
+    return await pool
+      .request()
+      .input("examinerID", sql.VarChar, examinerID)
+      .query(sqlQuery, function (error, data) {
+        if (data?.recordsets && data.recordsets.length > 0) {
+          result(null, data.recordsets);
+        } else {
+          result(true, null);
+        }
+      });
+  }
 
   async getRegistered(result) {
     let pool = await conn;
