@@ -107,7 +107,6 @@ module.exports = class Student {
 
     // Remove the trailing comma and add the WHERE condition
     sqlQuery = sqlQuery.slice(0, -1) + " WHERE ID = @ID";
-    console.log("sql Query value ", sqlQuery);
     return await pool
       .request()
       .input("ID", sql.VarChar, id)

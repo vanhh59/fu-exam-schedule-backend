@@ -33,7 +33,7 @@ exports.register = async function (req, res) {
             res.status(400).send({ ok: false, isSuccess: false, result: data, message:'Examiner is already register', error: err });
         } else {
           if(data[0]?.Result) {
-            res.status(200).send({ ok: true, isSuccess: true, result: data[0]?.Result, message:'Register successfull', error: err });
+            res.status(200).send({ ok: true, isSuccess: true, result: data[0], message:'Register successfull', error: err });
           } else {
             res.status(400).send({ ok: false, isSuccess: false, result: data[0]?.Result, message:'ExaminerId is invalid', error: err });
           }

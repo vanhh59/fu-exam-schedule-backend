@@ -95,7 +95,7 @@ module.exports = class Dashboard {
 
   async fieldInfoExamSchedule(data, result) {
     var pool = await conn;
-    var sqlQuery = queries.test;
+    var sqlQuery = queries.fieldInfoExamSchedule;
     return await pool
       .request()
       .input("classRoomID", sql.VarChar, data.classRoomID)

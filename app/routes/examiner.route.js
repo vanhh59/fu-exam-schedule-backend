@@ -5,20 +5,20 @@ module.exports = function (app) {
     //route lấy tất cả
     app.get('/examiner', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getListAll);
 
-    //route lấy theo id
+    //route lấy theo Examiner theo id
     app.get('/examiner/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getListByID);
 
     //route lấy theo email
     app.get('/examiner/email/:email', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getExaminerByEmail);
 
-     //lấy thông tin đăng kí của giám thị
+     //lấy thông tin đăng kí của giám thị trong examSlot cụ thể
      app.get('/examiner/registered/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getRegistered)
 
      //lấy slot thi trong hôm nay
      app.get('/examiner/examslot/current', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getCurrentDateExamSlot)
 
     //route lấy lương trog 1 semester
-    app.get('/examiner/income/specify/', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getIncome)
+    app.get('/examiner/income/specify', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getIncome)
 
     //route lấy thông tin exam slot của giáo viên cụ thể
     app.get('/examiner/exam-rooms/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.getExamRoomByExaminerID)
@@ -26,7 +26,7 @@ module.exports = function (app) {
     //route tất cả mọi người lấy lương trog 1 semester
     app.get('/examiner/incomeAll/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examinerController.getAllIncome)
 
-    //route tất cả mọi người lấy lương trog 1 semester
+    //route xem danh sach phòng thi
     app.get('/examiner/slot-available/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getAllAvailableSlot)
 
     //route xem danh sách những exam slot mà giám thị đó đã coi rồi

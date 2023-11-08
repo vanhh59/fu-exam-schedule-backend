@@ -178,48 +178,45 @@ module.exports = class Examiner {
       });
   }
 
-  async getExaminerExamRooms(examinerID, SemesterCode, result) {
+  async getExaminerExamRooms(examinerID, result) {
     let pool = await conn;
     let sqlQuery = queries.getExamRoomByExaminerID;
     return await pool
       .request()
       .input("examinerID", sql.VarChar, examinerID)
-      .input("SemesterCode", sql.VarChar, SemesterCode)
       .query(sqlQuery, function (error, data) {
         if (error) {
-          result(true, null);
+          result(error, null);
         } else {
           result(null, data.recordset);
         }
       });
   }
 
-  async getAllFinishedSlot(examinerID, SemesterCode, result) {
+  async getAllFinishedSlot(examinerID, result) {
     let pool = await conn;
     let sqlQuery = queries.getFinishedExamSlot;
     return await pool.request()
       .input('examinerID', sql.VarChar, examinerID)
-      .input('SemesterCode', sql.VarChar, SemesterCode)
       .query(sqlQuery, function (error, data) {
         if (error) {
-          result(true, null);
+          result(error?.message, null);
         } else {
-          result(null, data.recordset);
+          result(null, data?.recordsets[0]);
         }
       });
   }
 
-  async getAllUnFinishedSlot(examinerID, SemesterCode, result) {
+  async getAllUnFinishedSlot(examinerID, result) {
     let pool = await conn;
     let sqlQuery = queries.getUnFinishedExamSlot;
     return await pool.request()
       .input('examinerID', sql.VarChar, examinerID)
-      .input('SemesterCode', sql.VarChar, SemesterCode)
       .query(sqlQuery, function (error, data) {
         if (error) {
-          result(true, null);
+          result(error?.message, null);
         } else {
-          result(null, data.recordset);
+          result(null, data?.recordsets[0]);
         }
       });
   }
@@ -244,8 +241,8 @@ module.exports = class Examiner {
       .input("@examinerID", sql.VarChar, examinerID)
       .input("@examSlotID", sql.VarChar, Examslot)
       .query(sqlQuery, function (error, data) {
-        if (data.recordset && data.recordset.length > 0) {
-          result(null, data.recordset);
+        if (data) {
+          result(null, data);
         } else {
           result(true, null);
         }

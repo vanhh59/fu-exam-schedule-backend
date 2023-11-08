@@ -57,8 +57,9 @@ const queries = {
   WHERE ES.ID = @examSlotID`,
   register: `BEGIN TRANSACTION;
   DECLARE @ID VARCHAR(10);
+  DECLARE @userID VARCHAR(10);
   DECLARE @email NVARCHAR(50);
-  SELECT @email = U.email
+  SELECT @email = U.email, @userID = U.ID
   FROM [dbo].[Users] AS U
   WHERE U.ID = @examinerID;
   SELECT @ID = E.ID
@@ -71,7 +72,7 @@ const queries = {
   ELSE
   BEGIN
     INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, @examSlotID, 1)
-    SELECT CAST(1 AS BIT) AS Result;
+    SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID;
   END;
   COMMIT;`,
   registerUser: `BEGIN TRANSACTION;
@@ -127,26 +128,6 @@ const queries = {
   UPDATE [dbo].[ExamRoom] SET [examinerID] = '' WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
   COMMIT`,
   fieldInfoExamSchedule: `BEGIN TRANSACTION;
-  DECLARE @numericPart INT
-  SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT))
-  FROM ExamRoom AS ER
-  SET @numericPart = ISNULL(@numericPart, 0) + 1
-  DECLARE @examRoomID NVARCHAR(50) = 'R0' + CAST(@numericPart AS NVARCHAR(50))
-  INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID)
-  VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, @examinerID)
-  DECLARE @quantity INT
-  DECLARE @capacity INT
-  DECLARE @totalStudent INT
-  SELECT @capacity = CR.capacity FROM ExamRoom as ER
-  INNER JOIN Classroom as CR ON ER.classRoomID = CR.ID
-  WHERE ER.ID = @examRoomID
-  SELECT @totalStudent = COUNT(SE.studentID) FROM Stu_ExamRoom as SE
-  WHERE SE.examRoomID = @examRoomID
-  SET @quantity = (@totalStudent / @capacity) + 5
-  SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
-  UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examRoomID
-  COMMIT`,
-  test: `BEGIN TRANSACTION;
   DECLARE @EmailExists BIT;
   SELECT @EmailExists = CASE
       WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.examinerID = @examinerID AND ER.examSlotID = @examSlotID) THEN 1
@@ -193,15 +174,15 @@ const queries = {
     UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID
     COMMIT`,
   income: `
-    SELECT F.ID ,F.name, A.code, (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
-      FROM Semester A 
-      LEFT JOIN Course B ON A.ID = B.semesterID
-      LEFT JOIN ExamBatch C ON C.courseID = B.ID
-      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
-      LEFT JOIN Register E ON E.examSlotID = D.ID
-      LEFT JOIN Examiner F ON F.ID = E.examinerID
-      WHERE E.status = 1 AND F.ID = @examinerID AND A.code = @SemesterCode
-      GROUP BY F.ID ,F.name, A.code
+  SELECT EM.ID ,EM.name, S.code, (SUM(DATEDIFF(MINUTE,ES.startTime, ES.endTime)) / 60 * 100000) as 'salary' 
+  FROM Semester S
+  INNER JOIN Course C ON S.ID = C.semesterID
+  INNER JOIN ExamBatch E ON E.courseID = C.ID
+  INNER JOIN ExamSlot ES ON ES.examBatchID = E.ID
+  INNER JOIN Register R ON R.examSlotID = ES.ID
+  INNER JOIN Examiner EM ON EM.ID = R.examinerID
+  WHERE E.status = 1 AND EM.ID = @examinerID AND S.code = @semesterCode
+  GROUP BY EM.ID ,EM.name, S.code
       `,
   getAllIncome: `
       SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
@@ -364,41 +345,73 @@ GROUP BY [Department];
 	LEFT JOIN Semester SEM ON SEM.ID = C.semesterID
 	WHERE S.ID = @StudentId  AND SEM.code = @SemesterCode
   `,
-  getExamRoomByExaminerID: `
-    SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
-    FROM ExamSlot ES 
-    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
-    LEFT JOIN Course C ON C.ID = EB.courseID
-    LEFT JOIN Semester SE ON SE.ID = C.semesterID
-    WHERE EX.ID = @examinerID AND SE.code = @SemesterCode AND RE.status = 1
-  `,
+  getExamRoomByExaminerID: `SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
+  FROM ExamSlot ES 
+  LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+  LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+  LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+  LEFT JOIN Course C ON C.ID = EB.courseID
+  LEFT JOIN Semester SE ON SE.ID = C.semesterID
+  LEFT JOIN ExamRoom ER ON ER.examSlotID = ES.ID
+  LEFT JOIN Subject S ON ER.subjectID = S.ID
+  WHERE EX.ID = @examinerID AND RE.status = 1`,
   getFinishedExamSlot: `
-  SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
-    FROM ExamSlot ES 
-    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
-    LEFT JOIN Course C ON C.ID = EB.courseID
-    LEFT JOIN Semester SE ON SE.ID = C.semesterID
-    WHERE EX.ID = @examinerID 
-	AND SE.code = @SemesterCode 
-	AND RE.status = 1
-	AND ES.endTime < CAST(GETDATE() AS DATE)
+  BEGIN TRANSACTION;
+	  DECLARE @ExamRoomExists BIT;
+	  SELECT @ExamRoomExists = CASE
+		  WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.examinerID = @examinerID) THEN 1
+		  ELSE 0
+	  END;
+	  IF @ExamRoomExists = 0
+	  BEGIN
+		  SELECT CAST(0 AS BIT) AS Result;
+	  END
+	  ELSE
+	  BEGIN
+		SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
+		FROM ExamSlot ES 
+		LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+		LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+		LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+		LEFT JOIN Course C ON C.ID = EB.courseID
+		LEFT JOIN Semester SE ON SE.ID = C.semesterID
+		LEFT JOIN ExamRoom ER ON ER.examSlotID = ES.ID
+		LEFT JOIN Subject S ON ER.subjectID = S.ID
+		WHERE EX.ID = @examinerID
+		AND RE.status = 1
+		AND ES.endTime < CAST(GETDATE() AS DATE)
+		SELECT CAST(1 AS BIT) AS Result;
+	  END;
+    COMMIT
   `,
   getUnFinishedExamSlot: `
-  SELECT ES.ID, ES.startTime, ES.endTime, ES.quantity, ES.status
-    FROM ExamSlot ES 
-    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
-    LEFT JOIN Course C ON C.ID = EB.courseID
-    LEFT JOIN Semester SE ON SE.ID = C.semesterID
-    WHERE EX.ID = @examinerID 
-	AND SE.code = @SemesterCode 
-	AND RE.status = 1
-	AND ES.endTime > CAST(GETDATE() AS DATE)
+  BEGIN TRANSACTION;
+	  DECLARE @ExamRoomExists BIT;
+	  SELECT @ExamRoomExists = CASE
+		  WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.examinerID = @examinerID) THEN 1
+		  ELSE 0
+	  END;
+	  IF @ExamRoomExists = 0
+	  BEGIN
+		  SELECT CAST(0 AS BIT) AS Result;
+	  END
+	  ELSE
+	  BEGIN
+		SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
+		FROM ExamSlot ES 
+		LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+		LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+		LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+		LEFT JOIN Course C ON C.ID = EB.courseID
+		LEFT JOIN Semester SE ON SE.ID = C.semesterID
+		LEFT JOIN ExamRoom ER ON ER.examSlotID = ES.ID
+		LEFT JOIN Subject S ON ER.subjectID = S.ID
+		WHERE EX.ID = @examinerID
+		AND RE.status = 1
+		AND ES.endTime > CAST(GETDATE() AS DATE)
+		SELECT CAST(1 AS BIT) AS Result;
+	  END;
+    COMMIT
   `,
   getRegisteredInformation: `
     SELECT E.ID AS 'Examiner ID', E.name, E.email, E.experienceYears,

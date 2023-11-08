@@ -82,7 +82,7 @@ module.exports = class Users {
     let sqlQuery = queries.authorizeUser;
     if (item.Role == "Lecturer") {
       sqlQuery = queries.authorizeUserLecturer;
-    } 
+    }
     return await pool.request()
     .input('ID', sql.VarChar, item.ID)
     .input('Role', sql.VarChar, item.Role)
