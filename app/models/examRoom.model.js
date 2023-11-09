@@ -28,4 +28,21 @@ module.exports = class examRoom {
                 }
             });
     }
+    
+    async updateExamRoomAddExaminer(examRoom, result) {
+        var pool = await conn;
+        var sqlQuery = queries.updateExamRoomAddExaminer;
+        return await pool.request()
+            .input('examSlotID', sql.VarChar, examRoom.examSlotID)
+            .input('examinerID', sql.VarChar, examRoom.examinerID)
+            .input('examRoomID', sql.VarChar, examRoom.examRoomID)
+            .query(sqlQuery, function (error, data) {
+                if (data?.recordset) {
+                    result(null, data.recordset);
+                } else {
+                    result(error.message, null);
+                }
+            });
+    }
+
 }

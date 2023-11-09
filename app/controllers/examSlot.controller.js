@@ -94,24 +94,28 @@ exports.getExamSlotNull = async function (req, res) {
 
 exports.updateExamSlot = async function (req, res) {
   examSlot.updateExamSlot(req.params.id, req.body, function (err, data) {
-    if (err) {
-      res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
+    if(err) {
+      res.status(400).send({ ok: false, isSuccess: false,  result: data, error: err });
     } else {
-      res.status(200).send({ ok: true, isSuccess: true, result: data, error: err });
+        if (data[0]?.Result) {
+            res.status(200).send({ ok: true, isSuccess: true, message: `Update ExamSlot ${req.params.id} successful`, result: data, error: err });
+        } else {
+            res.status(400).send({ ok: false, isSuccess: false, message: `Update ExamSlot ${req.params.id} fail. Date must > 7 day from now and quantity must >= 1.`, result: data, error: err });
+        }
     }
   });
 };
 
 exports.deleteExamSlot = async function (req, res) {
   examSlot.deleteExamSlot(req.params.id, function (err, data) {
-    if (err) {
-      res.status(400).send({ ok: false, isSuccess: false, isSuccess: false, message: `Ca thi ${req.params.id} không tồn tại`, result: data, error: err });
+    if(err) {
+      res.status(400).send({ ok: false, isSuccess: false,  result: data, error: err });
     } else {
-      if (data >= 1) {
-        res.status(200).send({ ok: true, isSuccess: true, isSuccess: true, message: `Xóa ca thi ${req.params.id} thành công`, result: data, error: err });
-      } else {
-        res.status(400).send({ ok: false, isSuccess: false, isSuccess: false, message: `Ca thi ${req.params.id} không tồn tại`, result: data, error: err });
-      }
+        if (data[0]?.Result) {
+            res.status(200).send({ ok: true, isSuccess: true, message: `Delete ExamSlot ${req.params.id} successful`, result: data, error: err });
+        } else {
+            res.status(400).send({ ok: false, isSuccess: false, message: `Delete ExamSlot ${req.params.id} fail. ExamSlot have been assign in ExamRoom`, result: data, error: err });
+        }
     }
   });
 };

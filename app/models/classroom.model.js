@@ -1,4 +1,5 @@
 var { conn, sql } = require('../../connect');
+const queries = require('../sql/Queries');
 
 module.exports = class classroom {
     async getListAll(result) {
@@ -44,16 +45,19 @@ module.exports = class classroom {
 
     async create(classroom, result) {
         var pool = await conn;
-        var sqlQuery = "INSERT INTO Classroom VALUES (@ID, @code, @building, \
-             @floor, @type ,@capacity, @status )"
+        var sqlQuery = `BEGIN TRANSACTION;
+        DECLARE @numericPart INT;
+        DECLARE @classRoomID NVARCHAR(50);
+        SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ID, 2, LEN(ID)) AS INT)) FROM Classroom;
+        SET @numericPart = ISNULL(@numericPart, 0) + 1;
+        SET @classRoomID = 'P' + CAST(@numericPart AS NVARCHAR(50));
+        INSERT INTO Classroom VALUES (@classRoomID, @classRoomID, @building, @floor, @type ,@capacity, 1)
+        COMMIT;`
         return await pool.request()
-            .input('ID', sql.VarChar, classroom.ID)
-            .input('code', sql.NVarChar, classroom.code)
             .input('building', sql.VarChar, classroom.building)
             .input('floor', sql.Int, classroom.floor)
             .input('type', sql.NVarChar, classroom.type)
             .input('capacity', sql.Int, classroom.capacity)
-            .input('status', sql.Bit, classroom.status)
             .query(sqlQuery, function (error, data) {
                 if (error) {
                     result(error.message, null);
@@ -87,15 +91,14 @@ module.exports = class classroom {
 
     async deleteByUpdate(id, result) {
         var pool = await conn;
-        var sqlQuery = "UPDATE [dbo].[Classroom] SET status = @status WHERE ID = @ID";
+        var sqlQuery = queries.deleteClassRoom;
         return await pool.request()
             .input('ID', sql.VarChar, id)
-            .input('status', sql.Bit, 0)
             .query(sqlQuery, function (error, data) {
-                if (error) {
-                    result(error.message, null);
+                if (data.recordset && data.recordset.length > 0) {
+                    result(null, data.recordset);
                 } else {
-                    result(null, data);
+                    result(error.message, null);
                 }
             });
     }

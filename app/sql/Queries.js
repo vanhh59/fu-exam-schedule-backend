@@ -282,7 +282,7 @@ GROUP BY [Department];
   WHERE U.email = '@email'`,
   checkAuthorize: `SELECT U.Role, U.userName FROM dbo.Users AS U
   WHERE U.email = '@email' AND U.Role = '@role'`,
-  getAllUsers: `SELECT U.Role, U.userName, U.email FROM dbo.Users AS U`,
+  getAllUsers: ` SELECT U.ID, U.Role, U.userName, U.email, u.status FROM dbo.Users AS U`,
   getUserByEmail: `BEGIN TRANSACTION;
   DECLARE @examinerID VARCHAR(50);
   DECLARE @emailexaminer NVARCHAR(200);
@@ -473,7 +473,83 @@ GROUP BY [Department];
 	INNER JOIN ExamRoom ER ON ER.examSlotID = ES.ID
     WHERE E.status = 1 AND EM.ID = @examinerID AND ES.endTime < CAST(GETDATE() AS DATE)
     GROUP BY EM.ID ,EM.name, S.code, C.name, C.subjectID, ES.startTime, ES.endTime, ES.ID, ER.ID, ER.classRoomID
-	COMMIT;`
+	COMMIT;`,
+  deleteClassRoom: `BEGIN TRANSACTION;
+  DECLARE @ClassRoomExists BIT;
+  SELECT @ClassRoomExists = CASE
+        WHEN EXISTS (SELECT TOP 1 1
+  FROM dbo.ExamRoom AS ER
+  INNER JOIN ExamSlot ES ON ER.examSlotID = ES.ID
+  WHERE ER.classRoomID = @ID AND ES.startTime > CAST(GETDATE() AS DATE) ORDER BY ES.startTime DESC
+  ) THEN 1
+        ELSE 0
+    END;
+    IF @ClassRoomExists = 1
+    BEGIN
+        SELECT CAST(0 AS BIT) AS Result;
+    END
+    ELSE
+    BEGIN
+      UPDATE [dbo].[Classroom] SET status = 0 WHERE ID = @ID
+      SELECT CAST(1 AS BIT) AS Result;
+    END;
+    COMMIT`,
+  deleteExamSlot: `BEGIN TRANSACTION;
+  DECLARE @ExamSlotExists BIT;
+  SELECT @ExamSlotExists = CASE
+      WHEN EXISTS (SELECT TOP 1 *
+  FROM dbo.ExamRoom AS ER
+  INNER JOIN ExamSlot ES ON ER.examSlotID = ES.ID
+  WHERE ER.examSlotID = @ID AND ES.startTime > CAST(GETDATE() AS DATE) ORDER BY ES.startTime DESC
+  ) THEN 1
+        ELSE 0
+    END;
+    IF @ExamSlotExists = 1
+    BEGIN
+        SELECT CAST(0 AS BIT) AS Result;
+    END
+    ELSE
+    BEGIN
+  UPDATE ExamSlot SET status = 0 WHERE ID = @ID
+      SELECT CAST(1 AS BIT) AS Result;
+    END;
+    COMMIT`,
+  updateExamSlot: `BEGIN TRANSACTION;
+  DECLARE @MinValidDate DATETIME
+  SET @MinValidDate = DATEADD(DAY, 7, GETDATE())
+  
+  IF @startTime >= @MinValidDate AND @endTime >= @MinValidDate AND @quantity >= 1
+  BEGIN
+      UPDATE ExamSlot
+      SET startTime = @startTime,
+          endTime = @endTime,
+          quantity = @quantity
+      WHERE ID = @ID;
+    SELECT CAST(1 AS BIT) AS Result;
+  END
+  ELSE
+  BEGIN
+      SELECT CAST(0 AS BIT) AS Result;
+  END
+  COMMIT;`,
+  updateExamRoomAddExaminer: `BEGIN TRANSACTION;
+  DECLARE @ExaminerExists BIT;
+  SELECT @ExaminerExists = CASE
+    WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER
+    INNER JOIN ExamSlot ES ON ER.examSlotID = ES.ID
+    WHERE ER.examinerID = @examinerID AND ES.ID = @examSlotID) THEN 1
+    ELSE 0
+  END;
+  IF @ExaminerExists = 1
+  BEGIN
+    SELECT CAST(0 AS BIT) AS Result;
+  END
+  ELSE
+  BEGIN
+  UPDATE ExamRoom SET examinerID = @examinerID WHERE ID = @examRoomID
+  SELECT CAST(1 AS BIT) AS Result;
+  END;
+  COMMIT`
 };
 
 module.exports = queries;
