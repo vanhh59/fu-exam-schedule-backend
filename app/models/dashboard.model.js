@@ -99,7 +99,7 @@ module.exports = class Dashboard {
     return await pool
       .request()
       .input("classRoomID", sql.VarChar, data.classRoomID)
-      .input("examSlotID", sql.VarChar, data.examSlotID)
+      .input("examSlotID", sql.VarChar, data.dataExamSlotID)
       .input("subjectID", sql.VarChar, data.subjectID)
       .input("examinerID", sql.VarChar, data.examinerID)
       .query(sqlQuery, function (error, data) {

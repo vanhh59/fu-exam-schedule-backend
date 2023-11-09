@@ -72,7 +72,7 @@ const queries = {
   END
   ELSE
   BEGIN
-    INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, '', 1)
+    INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, @examSlotID, 1)
     SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID, @Role AS Role;
   END;
   COMMIT;`,
