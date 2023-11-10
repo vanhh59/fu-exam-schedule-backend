@@ -20,7 +20,8 @@ const app = express();
 
 // Configure CORS to allow requests only from localhost:3000
 const corsOptions = {
-    origin: ['http://localhost:3000', 'https://fu-exam-schedule.vercel.app', 'https://login-with-google-react-kdffy6.stackblitz.io'],
+    origin: ['http://localhost:3000', 'https://fu-exam-schedule.vercel.app', 'https://login-with-google-react-kdffy6.stackblitz.io', 
+  'https://fpt-swp391.postman.co/'],
     credentials: true,
 };
 
