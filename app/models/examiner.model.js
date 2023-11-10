@@ -88,7 +88,7 @@ module.exports = class Examiner {
     let pool = await conn;
     console.log(Examiner.name);
     let sqlQuery =
-      ` INSERT INTO [DB_EXAM].[dbo].[Examiner] VALUES (@ID, @name, @email, 
+      ` INSERT INTO [Examiner] VALUES (@ID, @name, @email, 
         @experienceYears, @specialization, @status)`;
     return await pool
       .request()
@@ -111,7 +111,7 @@ module.exports = class Examiner {
     var pool = await conn;
     console.log(Examiner);
     var sqlQuery =
-      "UPDATE [DB_EXAM].[dbo].[Examiner] SET name = @name, email = @email,\
+      "UPDATE [Examiner] SET name = @name, email = @email,\
         experienceYears = @experienceYears, specialization = @specialization,\
             status = @status WHERE ID = @ID";
     return await pool

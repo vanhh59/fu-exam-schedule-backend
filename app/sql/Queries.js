@@ -256,7 +256,7 @@ const queries = {
     LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
     LEFT JOIN Register E ON E.examSlotID = D.ID
     LEFT JOIN Examiner F ON F.ID = E.examinerID
-    LEFT JOIN [DB_EXAM].[dbo].[Department] G ON G.examinerID = F.ID
+    LEFT JOIN [Department] G ON G.examinerID = F.ID
     WHERE E.status = 1
     GROUP BY G.location, F.ID
 )

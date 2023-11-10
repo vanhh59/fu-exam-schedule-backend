@@ -11,7 +11,7 @@ module.exports = class Department {
         ,[phone]
         ,[status]
         ,[departmentID]
-    FROM [DB_EXAM].[dbo].[Department]`;
+    FROM [Department]`;
         return await pool.request().query(sqlQuery, function (error, data) {
             if (data.recordset && data.recordset.length > 0) {
                 result(null, data.recordset);
@@ -23,7 +23,7 @@ module.exports = class Department {
 
     async getDepartmentByID(id, result) {
         let pool = await conn;
-        let sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE departmentID = @DepartmentID";
+        let sqlQuery = "SELECT * FROM [Department] WHERE departmentID = @DepartmentID";
         return await pool.request()
             .input('DepartmentID', sql.Int, id)
             .query(sqlQuery, function (error, data) {
@@ -37,7 +37,7 @@ module.exports = class Department {
 
     async getByLocation(location, result) {
         let pool = await conn;
-        let sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE location = @location";
+        let sqlQuery = "SELECT * FROM [Department] WHERE location = @location";
         return await pool.request()
             .input('location', sql.VarChar, location)
             .query(sqlQuery, function (error, data) {
@@ -51,7 +51,7 @@ module.exports = class Department {
 
     async getByPhone(phone, result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE phone = @phone";
+        var sqlQuery = "SELECT * FROM [Department] WHERE phone = @phone";
         return await pool.request()
             .input('phone', sql.VarChar, phone)
             .query(sqlQuery, function (error, data) {
@@ -65,7 +65,7 @@ module.exports = class Department {
 
     async getByName(name, result) {
         var pool = await conn;
-        var sqlQuery = "SELECT * FROM [DB_EXAM].[dbo].[Department] WHERE name = @name";
+        var sqlQuery = "SELECT * FROM [Department] WHERE name = @name";
         return await pool.request()
             .input('name', sql.VarChar, name)
             .query(sqlQuery, function (error, data) {
@@ -79,7 +79,7 @@ module.exports = class Department {
 
     async create(Department, result) {
         let pool = await conn;
-        let sqlQuery = "INSERT INTO [DB_EXAM].[dbo].[Department] VALUES (@examinerID, @name, @examinerType, \
+        let sqlQuery = "INSERT INTO [Department] VALUES (@examinerID, @name, @examinerType, \
             @faculty, @location, @phone, @status)"
         return await pool.request()
             .input('examinerID', sql.NVarChar, Department.examinerID)
@@ -102,7 +102,7 @@ module.exports = class Department {
     async update(Department, result) {
         let pool = await conn;
         let sqlQuery = `
-        UPDATE [DB_EXAM].[dbo].[Department] SET name = @name, examinerType = @examinerType,
+        UPDATE [Department] SET name = @name, examinerType = @examinerType,
         faculty = @faculty, location = @location, phone = @phone,
             status = @status WHERE departmentID = @id
         `;
@@ -127,7 +127,7 @@ module.exports = class Department {
 
     async deleteDepartment(id, result) {
         let pool = await conn;
-        let sqlQuery = "UPDATE [DB_EXAM].[dbo].[Department] SET status = @status WHERE departmentID = @id";
+        let sqlQuery = "UPDATE [Department] SET status = @status WHERE departmentID = @id";
         return await pool.request()
             .input('id', sql.Int, id)
             .input('status', sql.Bit, false)
