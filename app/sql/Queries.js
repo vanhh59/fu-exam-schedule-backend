@@ -575,7 +575,33 @@ GROUP BY [Department];
   FROM dbo.ExamSlot AS ES
   LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
   FOR JSON PATH;
-  `
+  `,
+  getExamSlotFullInfoByID: `SELECT ES.ID AS examSlotID, EB.code, ES.startTime, ES.endTime, '' + CAST(ES.quantity AS NVARCHAR(10)) + '' AS quantity,
+  (
+      SELECT ER.ID AS examRoomID, ER.classRoomID AS classRoomCode,
+      ER.subjectID, S.name AS subjectName, EM.ID, EM.name,
+      (
+          SELECT R.examinerID, EM2.name AS examinerName FROM Register AS R
+          INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
+          WHERE ES.ID = R.examSlotID
+          FOR JSON PATH
+      ) AS ExaminerRegisterList,
+      (
+          SELECT DISTINCT EM2.ID AS examinerID, EM2.name AS examinerName FROM Register AS R
+          INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
+          WHERE ES.ID <> R.examSlotID
+          FOR JSON PATH
+      ) AS ExaminerBackupList
+      FROM ExamRoom AS ER
+      LEFT JOIN Examiner AS EM ON EM.ID = ER.examinerID
+      LEFT JOIN Subject AS S ON ER.subjectID = S.ID
+      WHERE ER.examSlotID = ES.ID
+      FOR JSON PATH
+  ) AS ExamRoomList
+  FROM dbo.ExamSlot AS ES
+  LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+  WHERE ES.ID = @examSlotID
+  FOR JSON PATH;`
 };
 
 module.exports = queries;

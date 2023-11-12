@@ -65,6 +65,19 @@ exports.getExamSlotFullInfo = async function (req, res) {
 };
 
 
+exports.getExamSlotFullInfoByID = async function (req, res) {
+  examSlot.getExamSlotFullInfoByID(req.params.id, function (err, data) {
+    if (err) {
+      res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
+    } else {
+      const innerJsonKey = "JSON_F52E2B61-18A1-11d1-B105-00805F49916B";
+      const jsonString = data.recordset[0][innerJsonKey];
+      const jsonData = JSON.parse(jsonString);
+      res.status(200).send({ ok: true, isSuccess: true, result: jsonData, error: err });
+    }
+  });
+};
+
 exports.getListByID = async function (req, res) {
   examSlot.getByID(req.params.id, function (err, data) {
     if (err) {
