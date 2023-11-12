@@ -5,6 +5,9 @@ module.exports = function (app) {
     //route lấy tất cả
     app.get('/examSlot', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), examSlotController.getListAll);
 
+    //router lấy full thông tin của ExamSlot, Examiner đã đăng ký vào ExamSlot, Examiner dự phòng, ExamRoom
+    app.get('/getExamSlotFullInfo', examSlotController.getExamSlotFullInfo);
+
     //route lấy theo id
     app.get('/examSlot/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer", "Student"]), examSlotController.getListByID);
 

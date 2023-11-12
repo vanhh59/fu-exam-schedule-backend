@@ -38,7 +38,7 @@ const queries = {
   SET @numericPart = ISNULL(@numericPart, 0) + 1;
   SET @examSlotID = 'Q0' + CAST(@numericPart AS NVARCHAR(50));
   INSERT INTO ExamSlot (ID, examBatchID, startTime, endTime, quantity, status)
-  VALUES (@examSlotID, @examBatchID, @startTime, @endTime, 0, 1);
+  VALUES (@examSlotID, @examBatchID, @startTime, @endTime, 5, 1);
   DECLARE @subjectID NVARCHAR(50);
   DECLARE @subjectName NVARCHAR(50);
   DECLARE @courseID1 VARCHAR(50);
@@ -549,7 +549,33 @@ GROUP BY [Department];
   UPDATE ExamRoom SET examinerID = @examinerID WHERE ID = @examRoomID
   SELECT CAST(1 AS BIT) AS Result;
   END;
-  COMMIT`
+  COMMIT`,
+  getExamSlotFullInfo: `SELECT ES.ID AS examSlotID, EB.code, ES.startTime, ES.endTime, '' + CAST(ES.quantity AS NVARCHAR(10)) + '' AS quantity,
+  (
+      SELECT ER.ID AS examRoomID, ER.classRoomID AS classRoomCode,
+      ER.subjectID, S.name AS subjectName, EM.ID, EM.name,
+      (
+          SELECT R.examinerID, EM2.name AS examinerName FROM Register AS R
+          INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
+          WHERE ES.ID = R.examSlotID
+          FOR JSON PATH
+      ) AS ExaminerRegisterList,
+      (
+          SELECT DISTINCT EM2.ID AS examinerID, EM2.name AS examinerName FROM Register AS R
+          INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
+          WHERE ES.ID <> R.examSlotID
+          FOR JSON PATH
+      ) AS ExaminerBackupList
+      FROM ExamRoom AS ER
+      LEFT JOIN Examiner AS EM ON EM.ID = ER.examinerID
+      LEFT JOIN Subject AS S ON ER.subjectID = S.ID
+      WHERE ER.examSlotID = ES.ID
+      FOR JSON PATH
+  ) AS ExamRoomList
+  FROM dbo.ExamSlot AS ES
+  LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+  FOR JSON PATH;
+  `
 };
 
 module.exports = queries;
