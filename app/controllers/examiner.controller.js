@@ -113,7 +113,7 @@ exports.getAllIncome = async function (req, res) {
 }
 
 exports.getAllAvailableSlot = async function (req, res) {
-    examiner.getAllAvailableSlot(req.query.examinerID, req.query.semesterCode, function (err, data) {
+    examiner.getAllAvailableSlot(req.query.examinerID, function (err, data) {
         if (err) {
             res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
         } else {

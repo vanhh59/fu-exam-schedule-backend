@@ -26,7 +26,7 @@ module.exports = function (app) {
     //route tất cả mọi người lấy lương trog 1 semester
     app.get('/examiner/incomeAll/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examinerController.getAllIncome)
 
-    //route xem danh sach phòng thi
+    //route xem danh sách ca thi đang trống
     app.get('/examiner/slot-available/all', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff", "Lecturer"]), examinerController.getAllAvailableSlot)
 
     //route xem danh sách những exam slot mà giám thị đó đã coi rồi

@@ -178,12 +178,11 @@ module.exports = class Examiner {
 
   }
 
-  async getAllAvailableSlot(examinerID, SemesterCode, result) {
+  async getAllAvailableSlot(examinerID, result) {
     let pool = await conn;
-    let sqlQuery = queries.getAvailableSlots2;
+    let sqlQuery = queries.getAvailableSlots;
     return await pool.request()
       .input('examinerID', sql.VarChar, examinerID)
-      .input('SemesterCode', sql.VarChar, SemesterCode)
       .query(sqlQuery, function (error, data) {
         if (error) {
           result(true, null);
