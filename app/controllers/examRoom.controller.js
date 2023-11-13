@@ -35,3 +35,22 @@ exports.updateExamRoomAddExaminer = async function (req, res) {
       }
     });
   };
+
+  exports.exportExcelExamRoomFullInfo = async function (req, res) {
+    res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=" + "ExcelExamRoomInfomation.xlsx"
+    );
+    const workbook = await examRoom.exportExcelExamRoomFullInfo(req.params.id);
+    if (workbook != null) {
+        return workbook.xlsx.write(res).then(function () {
+            res.status(200).end();
+        });
+    } else {
+        return res.status(400).send("No files were found.");
+    }
+}

@@ -129,30 +129,32 @@ const queries = {
   UPDATE [dbo].[ExamRoom] SET [examinerID] = '' WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
   COMMIT`,
   fieldInfoExamSchedule: `BEGIN TRANSACTION;
-  DECLARE @EmailExists BIT;
-  SELECT @EmailExists = CASE
-      WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.examinerID = @examinerID AND ER.examSlotID = @examSlotID) THEN 1
+  DECLARE @ExamRoomExists BIT;
+  SELECT @ExamRoomExists = CASE
+      -- Check trường hợp đã tồn tại ExamRoom rồi thì return 0 (false) ngược lại thì return 1 (true)
+      WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.classRoomID = @classRoomID AND ER.examSlotID = @examSlotID) THEN 1
       ELSE 0
   END;
-  IF @EmailExists = 1
+  IF @ExamRoomExists = 1
   BEGIN
       SELECT CAST(0 AS BIT) AS Result;
   END
   ELSE
   BEGIN
+    -- Tạo new record trong table ExamRoom (phòng thi)
     DECLARE @numericPart INT
-    SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT))
-    FROM ExamRoom AS ER
+    SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT)) FROM ExamRoom AS ER
     SET @numericPart = ISNULL(@numericPart, 0) + 1
-    DECLARE @examRoomID NVARCHAR(50) = 'R0' + CAST(@numericPart AS NVARCHAR(50))
+    DECLARE @examRoomID NVARCHAR(50) = 'R' + CAST(@numericPart AS NVARCHAR(50))
     INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID)
-    VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, @examinerID)
-    DECLARE @quantity INT
+    VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, '')
+    --------------------------------------
+	DECLARE @quantity INT
     DECLARE @capacity INT
     DECLARE @totalStudent INT
+	  -- Tính tổng số giám thị cần có của một ExamSlot (ca thi)
     SELECT @capacity = CR.capacity FROM ExamRoom as ER
-    INNER JOIN Classroom as CR ON ER.classRoomID = CR.ID
-    WHERE ER.ID = @examRoomID
+    INNER JOIN Classroom as CR ON ER.classRoomID = CR.ID WHERE ER.ID = @examRoomID
     SELECT @totalStudent = COUNT(SE.studentID) FROM Stu_ExamRoom as SE
     WHERE SE.examRoomID = @examRoomID
     SET @quantity = (@totalStudent / @capacity) + 5
@@ -601,7 +603,33 @@ GROUP BY [Department];
   FROM dbo.ExamSlot AS ES
   LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
   WHERE ES.ID = @examSlotID
-  FOR JSON PATH;`
+  FOR JSON PATH;`,
+  getExamRoomFullInfo: `BEGIN TRANSACTION;
+  --Lấy thông tin ExamRoom
+  SELECT 
+      ER.ID AS examRoomID, 
+      ER.classRoomID AS classRoomCode, 
+      S.name AS subjectName, 
+      EB.code, 
+      EM.name AS examinerName,
+    COUNT(Stu.studentID) AS totalStudent,
+      ES.startTime, 
+      ES.endTime
+  FROM ExamRoom AS ER
+  INNER JOIN ExamSlot AS ES ON ER.examSlotID = ES.ID
+  INNER JOIN Subject AS S ON ER.subjectID = S.ID
+  INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+  LEFT JOIN Examiner AS EM ON ER.examinerID = EM.ID
+  LEFT JOIN (
+      SELECT * FROM Stu_ExamRoom WHERE examRoomID = @examRoomID
+  ) AS Stu ON Stu.examRoomID = ER.ID
+  WHERE ER.ID = @examRoomID
+  GROUP BY ER.ID, ER.classRoomID, S.name, EB.code, EM.name, ES.startTime, ES.endTime;
+  
+  SELECT SE.examRoomID, SE.studentID, S.name as studentName, S.email, S.dateOfBirth, S.major, S.yearOfStudy, S.status FROM Stu_ExamRoom AS SE
+  INNER JOIN Student AS S ON SE.studentID = S.ID
+  WHERE SE.examRoomID = @examRoomID
+  COMMIT;`
 };
 
 module.exports = queries;

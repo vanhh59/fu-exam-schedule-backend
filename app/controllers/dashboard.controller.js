@@ -114,7 +114,6 @@ exports.importExcelFile = async function (req, res) {
       const updateQuantityResult = await new Promise((resolve, reject) => {
         dashboard.updateQuantityExamSlot(req.body, (err, data) => {
           if (err) {
-            console.log(err);
             return reject(err);
           }
           resolve(data);

@@ -101,7 +101,6 @@ module.exports = class Dashboard {
       .input("classRoomID", sql.VarChar, data.classRoomID)
       .input("examSlotID", sql.VarChar, data.dataExamSlotID)
       .input("subjectID", sql.VarChar, data.subjectID)
-      .input("examinerID", sql.VarChar, data.examinerID)
       .query(sqlQuery, function (error, data) {
         if (error) {
           result(error?.message, null);
@@ -130,16 +129,24 @@ module.exports = class Dashboard {
     try {
       var pool = await conn;
       const excelFile = data.files.excelFile;
+      const examRoomID = data.body.examRoomID;
       const workbook = new exceljs.Workbook();
       await workbook.xlsx.load(excelFile.data);
 
       const worksheet = workbook.getWorksheet(1);
 
+      // Check if the number of student is more than 25 then return;
+    if (worksheet.rowCount > 26) {
+      console.log("Import excel file fail: Too many student (more than 25). Returning false.");
+      result(true, (data = "Too many student (more than 25)"));
+      return;
+    }
+
       for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
         const row = worksheet.getRow(rowNumber);
         const array = [];
 
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i <= 1; i++) {
           array.push(row.getCell(i).value);
         }
 
@@ -148,7 +155,6 @@ module.exports = class Dashboard {
         const handleData = async () => {
           try {
             const studentID = array[0];
-            const examRoomID = array[1];
             const request = pool.request();
             request.input("studentID", sql.VarChar, studentID);
             request.input("examRoomID", sql.VarChar, examRoomID);
@@ -178,8 +184,10 @@ module.exports = class Dashboard {
       .input("examSlotID", sql.VarChar, data.examSlotID)
       .query(sqlQuery, function (error, data) {
         if (error) {
+          console.log(`Update quantity in ExamSlot ${data.examRoomID} fail`)
           result(error, null);
         } else {
+          console.log(`Update quantity in ExamSlot ${data.examRoomID} successfully`)
           result(null, data);
         }
       });
