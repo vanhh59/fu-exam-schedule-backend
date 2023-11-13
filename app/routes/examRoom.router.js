@@ -12,5 +12,8 @@ module.exports = function (app) {
     app.put('/examRoom', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examRoomController.updateExamRoomAddExaminer);
 
     //route download file excel thông tin phòng thi -- Ví dụ: /examRoom/download/R015
+    app.get("/examRoomWithStudent/:id", isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff"]), examRoomController.getExamRoomInfoAndStudent)
+    
+    //route download file excel thông tin phòng thi -- Ví dụ: /examRoom/download/R015
     app.get("/examRoom/download/:id", isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff"]), examRoomController.exportExcelExamRoomFullInfo)
 }
