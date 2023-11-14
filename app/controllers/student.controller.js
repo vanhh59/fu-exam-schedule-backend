@@ -63,7 +63,7 @@ exports.deleteStudent = async function (req, res) {
 };
 
 exports.getExamSlotByStudentId = async function (req, res) {
-  student.getExamSlotByStudentId(req.query.StudentId, req.query.SemesterCode, function (err, data) {
+  student.getExamSlotByStudentId(req.query.StudentId, function (err, data) {
     if (err) {
       res.status(400).send({ ok: false, isSuccess: false, result: data, error: "Not found any exam slot" });
     } else {

@@ -526,30 +526,45 @@ const queries = {
 
   // QUERY CHO STUDENT
   getExamSlotByStudentID: `
-    SELECT EX.name as 'Examiner name', ES.startTime, ES.endTime, SU.code, SEM.code
-    FROM Student S 
-    LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
-    LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
-    LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
-    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-    LEFT JOIN Subject SU ON SU.ID = ER.subjectID
-    LEFT JOIN Course C ON C.subjectID = SU.ID
-    LEFT JOIN Semester SEM ON SEM.ID = C.semesterID
-    WHERE S.ID = @StudentId  AND SEM.code = @SemesterCode
+    BEGIN TRANSACTION;
+    SELECT  ES.startTime, ES.endTime, EB.code AS examBatch, ER.classRoomID AS classRoom, SU.code AS subjectCode, SU.name AS subjectName, EX.name as examinerName
+      FROM Student S 
+      LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
+      LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
+      LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
+    LEFT JOIN ExamBatch EB ON ES.examBatchID = EB.ID
+      LEFT JOIN Register RE ON RE.examSlotID = ES.ID
+      LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
+      LEFT JOIN Subject SU ON SU.ID = ER.subjectID
+      LEFT JOIN Course C ON C.subjectID = SU.ID
+      WHERE S.ID = @StudentId AND ES.endTime > CAST(GETDATE() AS DATE)
+    COMMIT;
     `,
   // QUERY CHO USERS
   getUserByEmail: `BEGIN TRANSACTION;
-  DECLARE @examinerID VARCHAR(50);
-  DECLARE @emailexaminer NVARCHAR(200);
-  DECLARE @Role NVARCHAR(50);
-  DECLARE @userName NVARCHAR(200);
-  DECLARE @ID VARCHAR(50);
-  SELECT @emailexaminer = U.email, @Role = U.Role, @ID = U.ID, @userName = U.userName
-  FROM dbo.Users AS U WHERE U.email = @email;
-  SELECT @examinerID = E.ID FROM Examiner AS E WHERE E.email = @emailexaminer;
-  SELECT @examinerID AS examinerID, @emailexaminer AS email, @Role AS Role, @userName AS userName, @ID AS ID
-  COMMIT;`,
+    DECLARE @examinerID VARCHAR(50);
+    DECLARE @studentID VARCHAR(50);
+    DECLARE @emailUser NVARCHAR(200);
+    DECLARE @Role NVARCHAR(50);
+    DECLARE @userName NVARCHAR(200);
+    DECLARE @ID VARCHAR(50);
+    
+    SELECT @emailUser = U.email, @Role = U.Role, @ID = U.ID, @userName = U.userName FROM dbo.Users AS U WHERE U.email = @email;
+    IF @Role = 'Lecturer'
+    BEGIN
+      SELECT @examinerID = E.ID FROM Examiner AS E WHERE E.email = @emailUser;
+      SELECT @examinerID AS examinerID, @emailUser AS email, @Role AS Role, @userName AS userName, @ID AS ID
+    END
+    ELSE IF @Role = 'Student'
+    BEGIN
+      SELECT @studentID = S.ID FROM Student AS S WHERE S.email = @emailUser;
+      SELECT @studentID AS studentID, @emailUser AS email, @Role AS Role, @userName AS userName, @ID AS ID
+    END
+    ELSE
+    BEGIN
+      SELECT @emailUser AS email, @Role AS Role, @userName AS userName, @ID AS ID
+    END
+    COMMIT;`,
   getUserByID: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.ID = @ID`,
   // QUERY CHO REGISTER
   getRegisterWithExaminerInfo: `SELECT R.examSlotID, R.examinerID, E.name, R.status FROM Register AS R

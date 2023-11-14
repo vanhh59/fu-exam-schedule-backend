@@ -14,14 +14,13 @@ module.exports = class Student {
     });
   }
 
-  async getExamSlotByStudentId(stuID, SemesterCode, result) {
+  async getExamSlotByStudentId(stuID, result) {
 
     let pool = await conn;
     let sqlQuery = queries.getExamSlotByStudentID;
     return await pool
       .request()
       .input("StudentId", sql.VarChar, stuID)
-      .input("SemesterCode", sql.VarChar, SemesterCode)
       .query(sqlQuery, function (error, data) {
         if (data.recordset && data.recordset.length > 0) {
           result(null, data.recordset);
