@@ -11,7 +11,7 @@ module.exports = function (app) {
     //route cập nhật ExamRoom thay đổi ExaminerID với điều kiện Examiner này chưa được assign trong bất kỳ Room nào trong Slot hiện tại
     app.put('/examRoom', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examRoomController.updateExamRoomAddExaminer);
 
-    //route download file excel thông tin phòng thi -- Ví dụ: /examRoom/download/R015
+    //route lây thông tin ExamRoom và danh sách Student -- Ví dụ: /examRoomWithStudent/R015
     app.get("/examRoomWithStudent/:id", isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Testing Staff"]), examRoomController.getExamRoomInfoAndStudent)
     
     //route download file excel thông tin phòng thi -- Ví dụ: /examRoom/download/R015

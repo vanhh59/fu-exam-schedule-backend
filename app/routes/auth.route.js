@@ -8,39 +8,6 @@ const session = require('express-session');
 const { isAuthenticated, isAuthorized } = require('../controllers/auth.controller');
 const authRouter = express.Router();
 
-// Đăng nhập với Google
-authRouter.get('/login', async (req, res) => {
-  try {
-    const code = req.query.code;
-    // Exchange the code for an access token
-    const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
-      code,
-      client_id: '248305583189-gi11o6gn6552ctrve0eqlfj83l9sm90c.apps.googleusercontent.com',
-      client_secret: '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',
-      redirect_uri: 'http://localhost:3000/auth/google',
-      grant_type: 'authorization_code',
-    });
-
-    const accessToken = tokenResponse.data.access_token;
-    // Use the access token to fetch user data from Google
-    // const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken}`,
-    //   },
-    // });
-
-    // const userEmail = userInfoResponse.data.email;
-
-
-
-    // Respond with the user's email
-    res.json({ email: 'nguyen huy khai' });
-  } catch (error) {
-    console.error('Error handling Google authentication:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
 // Login thủ công -> Phân quyền
 authRouter.post('/login', (req, res) => {
   const { email } = req.body;
@@ -92,7 +59,7 @@ authRouter.post('/register', (req, res) => {
         } else {
           // User found, store user information in the session
           req.session.user = user;
-          res.status(200).send({ message: 'Register successful', role: 'Student' });
+          res.status(200).send({ userInfo: data, message: 'Register successful', role: 'Student' });
           return;
         }
       });

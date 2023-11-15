@@ -40,4 +40,3 @@ module.exports = {
     conn: conn,
     sql: sql
 };
-

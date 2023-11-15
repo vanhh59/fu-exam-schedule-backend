@@ -5,7 +5,16 @@ const queries = {
     WHERE U.email = '@email'`,
   checkAuthorize: `SELECT U.Role, U.userName FROM dbo.Users AS U
     WHERE U.email = '@email' AND U.Role = '@role'`,
-  authorizeUser: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
+  authorizeUserStudent: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
+  authorizeUser:`BEGIN TRANSACTION;
+    DECLARE @emailUser NVARCHAR(200)
+    DECLARE @studentID VARCHAR(200)
+    UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID
+    SELECT @emailUser = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID
+    SELECT @studentID = S.ID FROM Student AS S WHERE S.email = @emailUser
+    UPDATE Student SET status = 0 WHERE email = @emailUser
+    UPDATE Stu_ExamRoom SET status = 0 WHERE studentID = @studentID
+    COMMIT;`,
   authorizeUserLecturer: `BEGIN TRANSACTION;
     UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID;
     DECLARE @LastID INT;
@@ -24,20 +33,35 @@ const queries = {
     DECLARE @NewID NVARCHAR(10);
     DECLARE @name NVARCHAR(200);
     DECLARE @email NVARCHAR(200);
-    SELECT @name = U.userName, @email = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID;
-    SET @NewID = 'EX' + CAST(@LastID AS NVARCHAR(10));
-    INSERT INTO [dbo].[Examiner] VALUES (@NewID, @name, @email, 0, 'No information yet', 1);
-    SELECT @name, @email, @NewID AS examinerID
+    DECLARE @studentID VARCHAR(200);
+      SELECT @name = U.userName, @email = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID;
+      SET @NewID = 'EX' + CAST(@LastID AS NVARCHAR(10));
+    SELECT @studentID = ID FROM Student WHERE email = @email
+      INSERT INTO [dbo].[Examiner] VALUES (@NewID, @name, @email, 0, 'No information yet', 1);
+    UPDATE Student SET status = 0 WHERE ID = @studentID
+    UPDATE Stu_ExamRoom SET status = 0 WHERE studentID = @studentID
+      SELECT @name, @email, @NewID AS examinerID
     COMMIT;`,
   checkEmailIsValid: `SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Users WHERE email = @email) THEN 1 ELSE 0 END AS EmailExists`,
   registerUser: `BEGIN TRANSACTION;
     DECLARE @ID VARCHAR(200)
-    DECLARE @numberId INT
-    SELECT TOP 1 @numberId = MAX(CAST(SUBSTRING(ID, 2, LEN(ID)) AS INT)) FROM [dbo].[Users];
-    SET @numberId = ISNULL(@numberId, 0) + 1;
-    SET @ID = 'U' + CAST(@numberId AS NVARCHAR(50));
-    INSERT INTO [dbo].[Users] ([ID], [userName], [email], [Role], [status])
-    VALUES (@ID, @userName, @email, 'Student', 1)
+    DECLARE @studentID VARCHAR(200)
+      DECLARE @numberId INT
+    DECLARE @numberId2 INT
+    SELECT TOP 1 @numberId2 = MAX(CAST(SUBSTRING(ID, 3, LEN(ID)) AS INT)) FROM [dbo].[Student];
+      SELECT TOP 1 @numberId = MAX(CAST(SUBSTRING(ID, 2, LEN(ID)) AS INT)) FROM [dbo].[Users];
+    --Sinh mã ID cho table Student
+    SET @numberId2 = ISNULL(@numberId2, 0) + 1;
+      SET @studentID = 'SE' + CAST(@numberId2 AS NVARCHAR(50));
+    --Sinh mã ID cho table Users
+      SET @numberId = ISNULL(@numberId, 0) + 1;
+      SET @ID = 'U' + CAST(@numberId AS NVARCHAR(50));
+    --Tạo new record table Users
+      INSERT INTO [dbo].[Users] ([ID], [userName], [email], [Role], [status])
+      VALUES (@ID, @userName, @email, 'Student', 1)
+    --Tạo new record table Student
+    INSERT INTO [dbo].[Student] ([ID], [name], [email], [major], [yearOfStudy], [status])
+      VALUES (@studentID, @userName, @email, 'No information yet', 'No information yet',  1)
     COMMIT;`,
   // QUERY CHO CLASS ROOM
   deleteClassRoom: `BEGIN TRANSACTION;
@@ -147,7 +171,7 @@ const queries = {
     WHERE C.ID = @courseID;
     INSERT INTO Subject_Slot (examSlotID, subjectID, status)
     VALUES (@examSlotID, @subjectID, 1);
-    SELECT @subjectID as subjectID, @subjectName as subjectName, @courseID1 as courseID, @examSlotID as examSlotID;
+    SELECT @subjectID as subjectID, @subjectName as subjectName, @courseID1 as courseID, @examSlotID as examSlotID, 1 as status;
     COMMIT`,
   // 
   deleteExamSlot: `BEGIN TRANSACTION;
@@ -168,8 +192,8 @@ const queries = {
       BEGIN
     UPDATE ExamSlot SET status = 0 WHERE ID = @ID
         SELECT CAST(1 AS BIT) AS Result;
-      END;
-      COMMIT`,
+    END;
+    COMMIT`,
   updateExamSlot: `BEGIN TRANSACTION;
     DECLARE @MinValidDate DATETIME
     SET @MinValidDate = DATEADD(DAY, 7, GETDATE())
@@ -188,7 +212,7 @@ const queries = {
         SELECT CAST(0 AS BIT) AS Result;
     END
     COMMIT;`,
-  getExamSlotFullInfo: `SELECT ES.ID AS examSlotID, EB.code, ES.startTime, ES.endTime, '' + CAST(ES.quantity AS NVARCHAR(10)) + '' AS quantity,
+  getExamSlotFullInfo: `SELECT ES.ID AS examSlotID, EB.code, ES.startTime, ES.endTime, ES.status, '' + CAST(ES.quantity AS NVARCHAR(10)) + '' AS quantity,
     (
         SELECT ER.ID AS examRoomID, ER.classRoomID AS classRoomCode,
         ER.subjectID, S.name AS subjectName, EM.ID, EM.name,
@@ -214,7 +238,7 @@ const queries = {
     LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     FOR JSON PATH;
     `,
-  getExamSlotFullInfoByID: `SELECT ES.ID AS examSlotID, EB.code, ES.startTime, ES.endTime, '' + CAST(ES.quantity AS NVARCHAR(10)) + '' AS quantity,
+  getExamSlotFullInfoByID: `SELECT ES.ID AS examSlotID, EB.code, ES.startTime, ES.endTime, ES.status, '' + CAST(ES.quantity AS NVARCHAR(10)) + '' AS quantity,
     (
         SELECT ER.ID AS examRoomID, ER.classRoomID AS classRoomCode,
         ER.subjectID, S.name AS subjectName, EM.ID, EM.name,
@@ -336,7 +360,7 @@ const queries = {
     INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     LEFT JOIN Examiner AS EM ON ER.examinerID = EM.ID
     LEFT JOIN (
-        SELECT * FROM Stu_ExamRoom WHERE examRoomID = @examRoomID
+        SELECT * FROM Stu_ExamRoom WHERE examRoomID = @examRoomID AND status = 1
     ) AS Stu ON Stu.examRoomID = ER.ID
     WHERE ER.ID = @examRoomID
     GROUP BY ER.ID, ER.classRoomID, S.name, EB.code, EM.name, ES.startTime, ES.endTime;
@@ -532,7 +556,7 @@ const queries = {
       LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
       LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
       LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
-    LEFT JOIN ExamBatch EB ON ES.examBatchID = EB.ID
+      LEFT JOIN ExamBatch EB ON ES.examBatchID = EB.ID
       LEFT JOIN Register RE ON RE.examSlotID = ES.ID
       LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
       LEFT JOIN Subject SU ON SU.ID = ER.subjectID

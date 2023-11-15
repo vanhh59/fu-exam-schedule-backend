@@ -79,9 +79,13 @@ module.exports = class Users {
 
   async authorizeUser(item, result) {
     var pool = await conn;
-    let sqlQuery = queries.authorizeUser;
-    if (item.Role == "Lecturer") {
-      sqlQuery = queries.authorizeUserLecturer;
+    let sqlQuery = queries.authorizeUserStudent;
+    if (item.Role != 'Student') {
+      if (item.Role == "Lecturer") {
+        sqlQuery = queries.authorizeUserLecturer;
+      } else {
+        sqlQuery = queries.authorizeUser;
+      }
     }
     return await pool.request()
     .input('ID', sql.VarChar, item.ID)
