@@ -3,8 +3,8 @@ var sql = require('mssql');
 
 // Config Kết nối database server
 var config = {
-    server: "mssql-153861-0.cloudclusters.net",
-    port: 18681,
+    server: "mssql-154595-0.cloudclusters.net",
+    port: 19834,
     user: "SWP391",
     password: "Swp391@@@",
     database: "DB_EXAM_2",
