@@ -89,14 +89,14 @@ const queries = {
   // QUERY CHO DASHBOARD
   importExcelFile: `INSERT INTO Stu_ExamRoom (studentID, examRoomID, status) VALUES (@studentID, @examRoomID, 1)`,
   getExamSchedule: `SELECT
-	  ES.ID AS 'examSlotID',
+    ES.ID AS 'examSlotID',
     C.name AS 'courseName',
     C.subjectID,
     C.instructor,
     EB.ID AS 'examBatchID',
     ES.startTime,
     ES.endTime,
-    R.examinerID,
+    ER.examinerID,
     E.name AS 'examinerName',
     S.ID AS 'SemesterID',
     ER.classRoomID
@@ -104,10 +104,9 @@ const queries = {
     [dbo].[Course] AS C
     INNER JOIN [dbo].[ExamBatch] AS EB ON C.ID = EB.courseID
     INNER JOIN [dbo].[ExamSlot] AS ES ON EB.ID = ES.examBatchID
-    INNER JOIN [dbo].[Register] AS R ON ES.ID = R.examSlotID
-    INNER JOIN [dbo].[Examiner] AS E ON R.examinerID = E.ID
-    INNER JOIN [dbo].[Semester] AS S ON C.semesterID = S.ID
     INNER JOIN [dbo].[ExamRoom] AS ER ON ER.examSlotID = ES.ID
+    INNER JOIN [dbo].[Examiner] AS E ON ER.examinerID = E.ID
+    INNER JOIN [dbo].[Semester] AS S ON C.semesterID = S.ID
     WHERE ES.status = 1
     ORDER BY ES.startTime DESC`,
   isConflictDuringStartEndTime: `
