@@ -598,20 +598,29 @@ const queries = {
     DECLARE @userID VARCHAR(10);
     DECLARE @email NVARCHAR(50);
     DECLARE @Role VARCHAR(100);
-    SELECT @email = U.email, @userID = U.ID, @Role = U.Role
-    FROM [dbo].[Users] AS U
-    WHERE U.ID = @examinerID;
-    SELECT @ID = E.ID
-    FROM [dbo].[Examiner] AS E
-    WHERE E.email = @email;
+    DECLARE @examRoomID NVARCHAR(200);
+
+    SELECT @email = U.email, @userID = U.ID, @Role = U.Role FROM [dbo].[Users] AS U WHERE U.ID = @examinerID;
+    SELECT @ID = E.ID FROM [dbo].[Examiner] AS E WHERE E.email = @email;
     IF @ID IS NULL
     BEGIN
       SELECT CAST(0 AS BIT) AS Result;
     END
     ELSE
     BEGIN
-      INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, @examSlotID, 1)
-      SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID, @Role AS Role;
+      INSERT INTO Register(examinerID, examSlotID, status) VALUES (@ID, @examSlotID, 1);
+        
+      SELECT TOP 1 @examRoomID = ER.ID FROM dbo.ExamRoom AS ER WHERE examSlotID = @examSlotID AND examinerID = '';
+
+      IF @examRoomID IS NOT NULL
+      BEGIN
+        UPDATE ExamRoom SET examinerID = @ID WHERE ID = @examRoomID;
+        SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID, @Role AS Role, @examRoomID AS examRoomID;
+      END
+      ELSE
+      BEGIN
+        SELECT CAST(1 AS BIT) AS Result, @email AS email, @ID AS examinerID, @userID AS userID, @Role AS Role;
+      END
     END;
     COMMIT;`,
   getRegisteredInformation: `
