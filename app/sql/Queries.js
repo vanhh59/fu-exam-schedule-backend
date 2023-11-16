@@ -426,8 +426,7 @@ const queries = {
         SELECT * FROM Stu_ExamRoom WHERE examRoomID = @examRoomID AND status = 1
     ) AS Stu ON Stu.examRoomID = ER.ID
     WHERE ER.ID = @examRoomID
-    GROUP BY ER.ID, ER.classRoomID, S.name, EB.code, EM.name, ES.startTime, ES.endTime;
-    
+    GROUP BY ES.ID, ER.ID, ER.classRoomID, S.name, EB.code, EM.name, ES.startTime, ES.endTime
     SELECT SE.examRoomID, SE.studentID, S.name as studentName, S.email, S.dateOfBirth, S.major, S.yearOfStudy, S.status FROM Stu_ExamRoom AS SE
     INNER JOIN Student AS S ON SE.studentID = S.ID
     WHERE SE.examRoomID = @examRoomID
