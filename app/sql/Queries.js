@@ -401,6 +401,7 @@ const queries = {
     END
     ELSE
     BEGIN
+  INSERT INTO Register (examinerID, examSlotID, status) VALUES (@examinerID, @examSlotID, 1)
     UPDATE ExamRoom SET examinerID = @examinerID WHERE ID = @examRoomID
     SELECT CAST(1 AS BIT) AS Result;
     END;
