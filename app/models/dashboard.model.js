@@ -229,14 +229,15 @@ module.exports = class Dashboard {
       });
   }
 
-  async sendMail(id, result) {
-    const students = await this.findStudentInRoom(id);
+  async sendMail(data, result) {
+    const students = await this.findStudentInRoom(data?.examSlotID);
     if (students != null) {
       //Get the date before exam start
       let currentDay = new Date();
-      let targetDate = new Date(students[0].startTime.getTime());
+      console.log(students.recordset)
+      let targetDate = new Date(students.recordset[0].startTime.getTime());
       //Check whether the targetDate is after or before currentDate.
-      targetDate.setDate(students[0].startTime.getDate() - 1);
+      targetDate.setDate(students.recordset[0].startTime.getDate() - 1);
       if (currentDay > targetDate) {
         return 1;
       }
@@ -245,7 +246,7 @@ module.exports = class Dashboard {
         from: "baoit2002@gmail.com",
         to: "",
         subject: "Email from Node_App",
-        text: `There will be an exam at ${students[0].startTime}. Please go to fu-exam-schedule for more details.`,
+        text: `There will be an exam at ${students.recordset[0].startTime}. Please go to fu-exam-schedule for more details.`,
       };
       //email transport configuration
       const transporter = nodemailer.createTransport({
@@ -257,9 +258,9 @@ module.exports = class Dashboard {
       });
       //Schedule a date
       let job = new CronJob(
-        targetDate,
+        '*/5 * * * *',
         function () {
-          for (let value of students) {
+          for (let value of students.recordset) {
             mailOption.to = value.email;
             transporter.sendMail(mailOption, (error, info) => {
               if (error) {
@@ -287,6 +288,7 @@ module.exports = class Dashboard {
       .input("examSlotID", sql.VarChar, id)
       .query(sqlQueryStudentInRoom);
     if (result.recordset && result.recordset.length > 0) {
+      console.log(result);
       return result;
     } else {
       return null;

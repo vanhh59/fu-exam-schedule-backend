@@ -130,23 +130,23 @@ exports.importExcelFile = async function (req, res) {
         });
       });
 
-      // if (!flag) {
-      //   const result = dashboard.sendMail(req.body);
-      //   switch (result) {
-      //     case 1:
-      //       console.log("The exam start date has already passed.");
-      //       break;
-      //     case 2:
-      //       console.log("There weren't any students in the room.");
-      //       break;
-      //     case 3:
-      //       console.log("The email failed to send.");
-      //       break;
-      //     default:
-      //       console.log("The email sent successfully.");
-      //       break;
-      //   }
-      // }
+      if (flag) {
+        const result = await dashboard.sendMail(req.body);
+        switch (result) {
+          case 1:
+            console.log("The exam start date has already passed.");
+            break;
+          case 2:
+            console.log("There weren't any students in the room.");
+            break;
+          case 3:
+            console.log("The email failed to send.");
+            break;
+          default:
+            console.log("The email sent successfully.");
+            break;
+        }
+      }
 
       if (importExcelResult) {
         res.status(200).send({ ok: true, isSuccess: true, message:"Import excel successfully." });
