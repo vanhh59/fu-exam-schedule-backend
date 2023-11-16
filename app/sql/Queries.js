@@ -613,7 +613,7 @@ const queries = {
   // QUERY CHO STUDENT
   getExamSlotByStudentID: `
     BEGIN TRANSACTION;
-    SELECT  ES.startTime, ES.endTime, EB.code AS examBatch, ER.classRoomID AS classRoom, SU.code AS subjectCode, SU.name AS subjectName, EX.name as examinerName
+    SELECT DISTINCT ER.ID AS examRoom, ES.ID AS examSlot, ES.startTime, ES.endTime, EB.code AS examBatch, ER.classRoomID AS classRoom, SU.code AS subjectCode, SU.name AS subjectName
       FROM Student S 
       LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
       LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
