@@ -408,7 +408,8 @@ const queries = {
     COMMIT`,
   getExamRoomFullInfo: `BEGIN TRANSACTION;
     --Lấy thông tin ExamRoom
-    SELECT 
+    SELECT
+    ES.ID AS examSlotID,
         ER.ID AS examRoomID, 
         ER.classRoomID AS classRoomCode, 
         S.name AS subjectName, 
