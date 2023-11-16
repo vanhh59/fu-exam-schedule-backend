@@ -17,6 +17,9 @@ module.exports = function (app) {
     // Nhập thông tin tạo Exam Room trong một Slot thi
     app.post('/exam-room', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.fieldInfoExamSchedule)
 
+    // Tạo multiple exam-room
+    app.post('/exam-multiple-room', isAuthenticated, isAuthorized(['Testing Admin', 'Admin']), dashboardController.createMultipleExamRoom)
+
     // Nhập thông tin student vào Exam room bằng file excel
     app.post('/exam-room/import-excel', dashboardController.importExcelFile)
 

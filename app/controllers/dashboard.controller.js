@@ -55,6 +55,16 @@ exports.fieldInfoExamSchedule = async function (req, res) {
     });
 }
 
+exports.createMultipleExamRoom = async function (req, res) {
+  dashboard.createMultipleExamRoom(req.body, function (err, data) {
+      if(err) {
+          res.status(400).send({ ok: false, isSuccess: false, result: data, message:'Create Multiple ExamRoom fail', error: err});
+      } else {
+          res.status(200).send({ ok: true, isSuccess: true, result: data, message:'Create Multiple ExamRoom successful', error: err });
+      }
+  });
+}
+
 exports.getListExaminerRegister = async function (req, res) {
   dashboard.getListExaminerRegister(req.params.id, function (err, data) {
       if(err) {

@@ -109,6 +109,42 @@ module.exports = class Dashboard {
         }
       });
   }
+  
+  async createMultipleExamRoom(dataArray, result) {
+    try {
+      var pool = await conn;
+      const roomCreate= [];
+      for (let i = 0; i < dataArray.length; i++) {
+        console.log(dataArray[i]);
+        var sqlQuery = queries.fieldInfoExamSchedule;
+  
+        try {
+          const request = pool.request();
+          request.input("classRoomID", sql.VarChar, dataArray[i].classRoomID)
+          request.input("examSlotID", sql.VarChar, dataArray[i].dataExamSlotID)
+          request.input("subjectID", sql.VarChar, dataArray[i].subjectID)
+          const data = await request.query(sqlQuery);
+          
+          if (!data?.recordsets[0][0].Result) {
+            result({message: `Error during process create new room`,
+                    roomCreate: roomCreate}, null);
+            return;
+          }
+          roomCreate.push({classRoomID: dataArray[i].classRoomID,
+                           examSlotID: dataArray[i].dataExamSlotID,
+                           subjectID: dataArray[i].subjectID})
+        } catch (error) {
+          console.error("Error:", error);
+          result(error, null);
+          return;
+        }
+      }
+      result(null, roomCreate);
+    } catch (error) {
+      console.error("Error:", error);
+      result(error, null);
+    }
+  }
 
   async getListExaminerRegister(id, result) {
     var pool = await conn;

@@ -374,7 +374,7 @@ const queries = {
   fieldInfoExamSchedule: `BEGIN TRANSACTION;
     DECLARE @ExamRoomExists BIT;
     SELECT @ExamRoomExists = CASE
-        -- Check trường hợp đã tồn tại ExamRoom rồi thì return 0 (false) ngược lại thì return 1 (true)
+        -- Check trường hợp đã tồn tại ExamRoom rồi thì return 1 (true) ngược lại thì return 0 (false)
         WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.classRoomID = @classRoomID AND ER.examSlotID = @examSlotID) THEN 1
         ELSE 0
     END;
