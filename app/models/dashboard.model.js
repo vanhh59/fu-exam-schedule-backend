@@ -243,7 +243,7 @@ module.exports = class Dashboard {
       }
       //email message option
       const mailOption = {
-        from: "baoit2002@gmail.com",
+        from: "vietanhcode@gmail.com",
         to: "",
         subject: "Email from Node_App",
         text: `There will be an exam at ${students.recordset[0].startTime}. Please go to fu-exam-schedule for more details.`,
@@ -252,8 +252,8 @@ module.exports = class Dashboard {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: "baoit2002@gmail.com",
-          pass: "ztij tdmu lmup ecgl",
+          user: "vietanhcode@gmail.com",
+          pass: "Swp391@@@",
         },
       });
       //Schedule a date
