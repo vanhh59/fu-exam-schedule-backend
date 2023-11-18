@@ -45,6 +45,16 @@ exports.updateExamRoomAddExaminer = async function (req, res) {
       }
     });
   };
+  
+  exports.updateAttendanceStatus = async function (req, res) {
+    examRoom.updateAttendanceStatus(req.params.id, req.body, function (err, data) {
+      if(err) {
+        res.status(400).send({ ok: false, isSuccess: false, message: `Update ExamRoom ${req.params.id} fail.` ,result: data, error: err });
+      } else {
+        res.status(200).send({ ok: true, isSuccess: true, message: `Update ExamRoom ${req.params.id} successful.`, result: data, error: err });          
+      }
+    });
+  };
 
   exports.exportExcelExamRoomFullInfo = async function (req, res) {
     res.setHeader(

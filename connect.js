@@ -1,6 +1,5 @@
 var sql = require('mssql');
 
-
 // Config Kết nối database server
 var config = {
     server: "mssql-154595-0.cloudclusters.net",

@@ -99,7 +99,8 @@ const queries = {
     ER.examinerID,
     E.name AS 'examinerName',
     S.ID AS 'SemesterID',
-    ER.classRoomID
+    ER.classRoomID,
+    ER.status AS attendanceStatus
     FROM
     [dbo].[Course] AS C
     INNER JOIN [dbo].[ExamBatch] AS EB ON C.ID = EB.courseID
@@ -218,6 +219,7 @@ const queries = {
     ES.endTime,
     ES.status,
     CAST(ES.quantity AS NVARCHAR(10)) AS quantity,
+    COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
     (
         -- ExamRoomList subquery
         SELECT
@@ -227,6 +229,7 @@ const queries = {
             S.name AS subjectName,
             EM.ID,
             EM.name,
+            ER.status AS attendanceStatus,
             (
                 -- ExaminerRegisterList subquery
                 SELECT
@@ -234,7 +237,7 @@ const queries = {
                     EM2.name AS examinerName
                 FROM Register AS R
                 INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ES.ID = R.examSlotID
+                WHERE ER.examSlotID = R.examSlotID
                 FOR JSON PATH
             ) AS ExaminerRegisterList,
             (
@@ -244,28 +247,31 @@ const queries = {
                     EM2.name AS examinerName
                 FROM Register AS R
                 INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ES.ID <> R.examSlotID
+                WHERE ER.examSlotID <> R.examSlotID
                 FOR JSON PATH
             ) AS ExaminerBackupList
-          FROM ExamRoom AS ER
-          LEFT JOIN Examiner AS EM ON EM.ID = ER.examinerID
-          LEFT JOIN Subject AS S ON ER.subjectID = S.ID
-          WHERE ER.examSlotID = ES.ID
-          FOR JSON PATH
-      ) AS ExamRoomList,
-      (
-          -- ClassRoomList subquery
-          SELECT C.ID AS classRoomID
-      FROM ClassRoom AS C
-      WHERE C.ID NOT IN (
-        SELECT ER.classRoomID
         FROM ExamRoom AS ER
+        LEFT JOIN Examiner AS EM ON EM.ID = ER.examinerID
+        LEFT JOIN Subject AS S ON ER.subjectID = S.ID
         WHERE ER.examSlotID = ES.ID
-      )
-          FOR JSON PATH
-      ) AS ClassRoomList
+        FOR JSON PATH
+    ) AS ExamRoomList,
+    (
+        -- ClassRoomList subquery
+        SELECT C.ID AS classRoomID
+        FROM ClassRoom AS C
+        WHERE C.ID NOT IN (
+            SELECT ER.classRoomID
+            FROM ExamRoom AS ER
+            WHERE ER.examSlotID = ES.ID
+        )
+        FOR JSON PATH
+    ) AS ClassRoomList
     FROM dbo.ExamSlot AS ES
     LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+    LEFT JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
+    WHERE ES.status = 1
+    GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;
     `,
   getExamSlotFullInfoByID: `SELECT
@@ -275,6 +281,7 @@ const queries = {
     ES.endTime,
     ES.status,
     CAST(ES.quantity AS NVARCHAR(10)) AS quantity,
+    COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
     (
         -- ExamRoomList subquery
         SELECT
@@ -284,6 +291,7 @@ const queries = {
             S.name AS subjectName,
             EM.ID,
             EM.name,
+            ER.status AS attendanceStatus,
             (
                 -- ExaminerRegisterList subquery
                 SELECT
@@ -291,7 +299,7 @@ const queries = {
                     EM2.name AS examinerName
                 FROM Register AS R
                 INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ES.ID = R.examSlotID
+                WHERE ER.examSlotID = R.examSlotID
                 FOR JSON PATH
             ) AS ExaminerRegisterList,
             (
@@ -301,48 +309,50 @@ const queries = {
                     EM2.name AS examinerName
                 FROM Register AS R
                 INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ES.ID <> R.examSlotID
+                WHERE ER.examSlotID <> R.examSlotID
                 FOR JSON PATH
             ) AS ExaminerBackupList
-          FROM ExamRoom AS ER
-          LEFT JOIN Examiner AS EM ON EM.ID = ER.examinerID
-          LEFT JOIN Subject AS S ON ER.subjectID = S.ID
-          WHERE ER.examSlotID = ES.ID
-          FOR JSON PATH
-      ) AS ExamRoomList,
-      (
-          -- ClassRoomList subquery
-          SELECT C.ID AS classRoomID
-      FROM ClassRoom AS C
-      WHERE C.ID NOT IN (
-        SELECT ER.classRoomID
         FROM ExamRoom AS ER
+        LEFT JOIN Examiner AS EM ON EM.ID = ER.examinerID
+        LEFT JOIN Subject AS S ON ER.subjectID = S.ID
         WHERE ER.examSlotID = ES.ID
-      )
-          FOR JSON PATH
-      ) AS ClassRoomList
+        FOR JSON PATH
+    ) AS ExamRoomList,
+    (
+        -- ClassRoomList subquery
+        SELECT C.ID AS classRoomID
+        FROM ClassRoom AS C
+        WHERE C.ID NOT IN (
+            SELECT ER.classRoomID
+            FROM ExamRoom AS ER
+            WHERE ER.examSlotID = ES.ID
+        )
+        FOR JSON PATH
+    ) AS ClassRoomList
     FROM dbo.ExamSlot AS ES
     LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
+    LEFT JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
     WHERE ES.ID = @examSlotID
+    GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;`,
   getAvailableSlots: `
-    SELECT EB.code, E.ID AS examSlotID, E.startTime, E.endTime, E.quantity AS maximumQuantity, COUNT(tableExamRoom.examSlotID) AS currentQuantity, E.status AS examSlotStatus, S.code AS semesterCode
+    SELECT EB.code, E.ID AS examSlotID, E.startTime, E.endTime, E.quantity AS maximumQuantity, COUNT(tableExamRoom.examSlotID) AS currentQuantity, tableExamRoom.status AS attendanceStatus, E.status AS examSlotStatus, S.code AS semesterCode
     FROM ExamSlot E
     LEFT JOIN Register R ON E.ID = R.examSlotID
     LEFT JOIN ExamBatch EB ON EB.ID = E.examBatchID
     LEFT JOIN Course C ON C.ID = EB.courseID
     LEFT JOIN Semester S ON S.ID = C.semesterID
-  LEFT JOIN (
-    SELECT * FROM ExamRoom WHERE examinerID <> ''
-  ) AS tableExamRoom ON tableExamRoom.examSlotID = E.ID
-    WHERE E.status = 1
-    AND E.quantity > ( SELECT COUNT(R2.examSlotID)
-            FROM Register R2
-                      WHERE R2.examSlotID = E.ID AND R2.status = 1 )
-    AND E.ID NOT IN( SELECT examSlotID
-          FROM Register
-          WHERE examinerID = @examinerID AND status = 1 )
-  GROUP BY EB.code, E.ID, E.startTime, E.endTime, E.quantity, tableExamRoom.examSlotID, E.status, S.code
+    LEFT JOIN (
+      SELECT * FROM ExamRoom WHERE examinerID <> ''
+    ) AS tableExamRoom ON tableExamRoom.examSlotID = E.ID
+      WHERE E.status = 1
+      AND E.quantity > ( SELECT COUNT(R2.examSlotID)
+              FROM Register R2
+                        WHERE R2.examSlotID = E.ID AND R2.status = 1 )
+      AND E.ID NOT IN( SELECT examSlotID
+            FROM Register
+            WHERE examinerID = @examinerID AND status = 1 )
+    GROUP BY EB.code, E.ID, E.startTime, E.endTime, E.quantity, tableExamRoom.examSlotID, tableExamRoom.status, E.status, S.code
       `,
   getCurrentDateExamSlot: `
     SELECT *
@@ -377,11 +387,11 @@ const queries = {
   // QUERY CHO EXAMBATCH
 
   // QUERY CHO EXAMROOM
-  getInfoExamRoom: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
+  getInfoExamRoom: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building, ER.status AS attendanceStatus FROM dbo.ExamRoom AS ER
     INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
     INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
     INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID`,
-  getInfoExamRoomById: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building FROM dbo.ExamRoom AS ER
+  getInfoExamRoomById: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building, ER.status AS attendanceStatus FROM dbo.ExamRoom AS ER
     INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
     INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
     INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
@@ -400,7 +410,7 @@ const queries = {
     END
     ELSE
     BEGIN
-  INSERT INTO Register (examinerID, examSlotID, status) VALUES (@examinerID, @examSlotID, 1)
+    INSERT INTO Register (examinerID, examSlotID, status) VALUES (@examinerID, @examSlotID, 1)
     UPDATE ExamRoom SET examinerID = @examinerID WHERE ID = @examRoomID
     SELECT CAST(1 AS BIT) AS Result;
     END;
@@ -414,9 +424,10 @@ const queries = {
         S.name AS subjectName, 
         EB.code, 
         EM.name AS examinerName,
-      COUNT(Stu.studentID) AS totalStudent,
+        COUNT(Stu.studentID) AS totalStudent,
         ES.startTime, 
-        ES.endTime
+        ES.endTime,
+        ER.status AS attendanceStatus
     FROM ExamRoom AS ER
     INNER JOIN ExamSlot AS ES ON ER.examSlotID = ES.ID
     INNER JOIN Subject AS S ON ER.subjectID = S.ID
@@ -451,8 +462,8 @@ const queries = {
       SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT)) FROM ExamRoom AS ER
       SET @numericPart = ISNULL(@numericPart, 0) + 1
       DECLARE @examRoomID NVARCHAR(50) = 'R' + CAST(@numericPart AS NVARCHAR(50))
-      INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID)
-      VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, '')
+      INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID, status)
+      VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, '', 'not_yet')
       --------------------------------------
     DECLARE @quantity INT
       DECLARE @capacity INT
@@ -470,7 +481,7 @@ const queries = {
   getExamRoomInSemester: `
     SELECT C.ID AS 'CourseID', S.name as 'SubjectName', EB.code as 'examBatch_code',
     ES.startTime, ES.endTime, EX.name as 'ExaminerName', SE.ID as 'SemesterID',
-    CR.ID as 'classRoomID'
+    CR.ID as 'classRoomID', E.status AS attendanceStatus
     FROM ExamRoom E
     LEFT JOIN Examiner EX ON EX.ID = E.examinerID
     LEFT JOIN Classroom CR ON CR.ID = E.classRoomID
@@ -496,6 +507,7 @@ const queries = {
     S.code AS semesterCode, C.name AS courseName,
     C.subjectID, ES.startTime, ES.endTime,
     ES.ID AS examSlot, ER.ID AS examRoom,
+    ER.status AS attendanceStatus,
     ER.classRoomID AS classRoomCode, (SUM(DATEDIFF(MINUTE,ES.startTime, ES.endTime)) / 60 * 100000) as 'salary' 
       FROM Semester S
       INNER JOIN Course C ON S.ID = C.semesterID
@@ -540,7 +552,7 @@ const queries = {
     WHERE E.status = 1 
     GROUP BY F.ID ,F.name, A.code, A.ID
       `,
-  getExamRoomByExaminerID: `SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
+  getExamRoomByExaminerID: `SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, ER.status AS attendanceStatus, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
     FROM ExamSlot ES 
     LEFT JOIN Register RE ON RE.examSlotID = ES.ID
     LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
@@ -563,7 +575,7 @@ const queries = {
       END
       ELSE
       BEGIN
-      SELECT EB.code AS examBatchCode, ES.ID AS examSlotID, ES.startTime, ES.endTime, ES.quantity AS totalExaminerInSlot, RE.status AS registerStatus, ER.classRoomID AS classRoomCode, S.name AS subjectName, ES.status AS examSlotStatus
+      SELECT EB.code AS examBatchCode, ES.ID AS examSlotID, ES.startTime, ES.endTime, ES.quantity AS totalExaminerInSlot, RE.status AS registerStatus, ER.classRoomID AS classRoomCode, ER.status AS attendanceStatus, S.name AS subjectName, ES.status AS examSlotStatus
       FROM ExamSlot ES
       LEFT JOIN Register RE ON RE.examSlotID = ES.ID
       LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
@@ -592,7 +604,7 @@ const queries = {
       END
       ELSE
       BEGIN
-      SELECT EB.code AS examBatchCode, ES.ID AS examSlotID, ES.startTime, ES.endTime, ES.quantity AS totalExaminerInSlot, RE.status AS registerStatus, ER.classRoomID AS classRoomCode, S.name AS subjectName, ES.status AS examSlotStatus
+      SELECT EB.code AS examBatchCode, ES.ID AS examSlotID, ES.startTime, ES.endTime, ES.quantity AS totalExaminerInSlot, RE.status AS registerStatus, ER.classRoomID AS classRoomCode, ER.status AS attendanceStatus, S.name AS subjectName, ES.status AS examSlotStatus
       FROM ExamSlot ES
       LEFT JOIN Register RE ON RE.examSlotID = ES.ID
       LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
@@ -740,6 +752,11 @@ const queries = {
       LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
       GROUP BY A.code, A.ID
     `,
+  updateAttendanceStatus: `
+  BEGIN TRANSACTION;
+  UPDATE ExamRoom SET status =  @attendanceStatus WHERE ID = @examRoomID
+  SELECT * FROM ExamRoom WHERE ID = @examRoomID
+  COMMIT;`
 };
 
 module.exports = queries;

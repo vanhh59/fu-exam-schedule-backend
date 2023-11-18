@@ -46,6 +46,22 @@ module.exports = class examRoom {
         }
       });
   }
+  
+  async updateAttendanceStatus(id, examRoom, result) {
+    var pool = await conn;
+    var sqlQuery = queries.updateAttendanceStatus;
+    return await pool
+      .request()
+      .input("examRoomID", sql.VarChar, id)
+      .input("attendanceStatus", sql.VarChar, examRoom.attendanceStatus)
+      .query(sqlQuery, function (error, data) {
+        if (data?.recordset) {
+          result(null, data.recordset);
+        } else {
+          result(error.message, null);
+        }
+      });
+  }
 
   async getExamRoomFullInfo(id) {
     let pool = await conn;
