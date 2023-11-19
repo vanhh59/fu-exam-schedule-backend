@@ -242,12 +242,14 @@ const queries = {
             ) AS ExaminerRegisterList,
             (
                 -- ExaminerBackupList subquery
-                SELECT DISTINCT
-                    EM2.ID AS examinerID,
-                    EM2.name AS examinerName
-                FROM Register AS R
-                INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ER.examSlotID <> R.examSlotID
+        SELECT DISTINCT EM3.ID AS examinerID, EM3.name AS examinerName
+        FROM Examiner AS EM3
+        WHERE EM3.ID NOT IN (
+          SELECT DISTINCT EM2.ID
+          FROM Examiner AS EM2
+          INNER JOIN ExamRoom AS ER3 ON EM2.ID = ER3.examinerID
+          WHERE examSlotID = ER.examSlotID
+        )
                 FOR JSON PATH
             ) AS ExaminerBackupList
         FROM ExamRoom AS ER
@@ -270,7 +272,6 @@ const queries = {
     FROM dbo.ExamSlot AS ES
     LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     LEFT JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
-    WHERE ES.status = 1
     GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;
     `,
@@ -304,12 +305,14 @@ const queries = {
             ) AS ExaminerRegisterList,
             (
                 -- ExaminerBackupList subquery
-                SELECT DISTINCT
-                    EM2.ID AS examinerID,
-                    EM2.name AS examinerName
-                FROM Register AS R
-                INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ER.examSlotID <> R.examSlotID
+        SELECT DISTINCT EM3.ID AS examinerID, EM3.name AS examinerName
+        FROM Examiner AS EM3
+        WHERE EM3.ID NOT IN (
+          SELECT DISTINCT EM2.ID
+          FROM Examiner AS EM2
+          INNER JOIN ExamRoom AS ER3 ON EM2.ID = ER3.examinerID
+          WHERE examSlotID = ER.examSlotID
+        )
                 FOR JSON PATH
             ) AS ExaminerBackupList
         FROM ExamRoom AS ER
