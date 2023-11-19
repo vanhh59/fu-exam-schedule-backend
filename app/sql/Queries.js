@@ -178,9 +178,8 @@ const queries = {
     DECLARE @ExamSlotExists BIT;
     SELECT @ExamSlotExists = CASE
         WHEN EXISTS (SELECT TOP 1 *
-    FROM dbo.ExamRoom AS ER
-    INNER JOIN ExamSlot ES ON ER.examSlotID = ES.ID
-    WHERE ER.examSlotID = @ID AND ES.startTime > CAST(GETDATE() AS DATE) ORDER BY ES.startTime DESC
+    FROM dbo.ExamSlot AS ES WHERE ES.ID = @ID
+    AND ES.startTime < CAST(GETDATE() AS DATE) ORDER BY ES.startTime DESC
     ) THEN 1
           ELSE 0
       END;
@@ -272,6 +271,7 @@ const queries = {
     FROM dbo.ExamSlot AS ES
     LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     LEFT JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
+    WHERE ES.status = 1
     GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;
     `,
@@ -335,11 +335,13 @@ const queries = {
     FROM dbo.ExamSlot AS ES
     LEFT JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     LEFT JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
-    WHERE ES.ID = @examSlotID
+    WHERE ES.ID = @examSlotID AND ES.status = 1
     GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;`,
   getAvailableSlots: `
-    SELECT EB.code, E.ID AS examSlotID, E.startTime, E.endTime, E.quantity AS maximumQuantity, COUNT(tableExamRoom.examSlotID) AS currentQuantity, tableExamRoom.status AS attendanceStatus, E.status AS examSlotStatus, S.code AS semesterCode
+    SELECT EB.code, E.ID AS examSlotID, E.startTime, E.endTime, E.quantity AS maximumQuantity,
+    COUNT(tableExamRoom.examSlotID) AS currentQuantity, tableExamRoom.status AS attendanceStatus,
+    E.status AS examSlotStatus, S.code AS semesterCode
     FROM ExamSlot E
     LEFT JOIN Register R ON E.ID = R.examSlotID
     LEFT JOIN ExamBatch EB ON EB.ID = E.examBatchID
@@ -365,7 +367,8 @@ const queries = {
   getExamSlotNull: `SELECT ES.ID, ES.examBatchID, ES.startTime, ES.endTime, ES.quantity, ES.status FROM ExamSlot AS ES WHERE ES.quantity = 0 ORDER BY ES.ID DESC`,
   getExamSlotInfo: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, ES.quantity, EB.location, ES.status, C.name FROM ExamSlot AS ES
     INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
-    INNER JOIN Course AS C ON EB.courseID = C.ID`,
+    INNER JOIN Course AS C ON EB.courseID = C.ID
+    WHERE ES.status = 1`,
   updateQuantityExamSlot: `BEGIN TRANSACTION;
     DECLARE @quantity INT
     DECLARE @capacity INT
@@ -393,7 +396,9 @@ const queries = {
   getInfoExamRoom: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building, ER.status AS attendanceStatus FROM dbo.ExamRoom AS ER
     INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
     INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
-    INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID`,
+    INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
+    INNER JOIN dbo.ExamSlot AS ES ON ER.examSlotID = ES.ID
+    WHERE ES.status = 1`,
   getInfoExamRoomById: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building, ER.status AS attendanceStatus FROM dbo.ExamRoom AS ER
     INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
     INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
@@ -440,7 +445,7 @@ const queries = {
         SELECT * FROM Stu_ExamRoom WHERE examRoomID = @examRoomID AND status = 1
     ) AS Stu ON Stu.examRoomID = ER.ID
     WHERE ER.ID = @examRoomID
-    GROUP BY ES.ID, ER.ID, ER.classRoomID, S.name, EB.code, EM.name, ES.startTime, ES.endTime
+    GROUP BY ES.ID, ER.ID, ER.classRoomID, S.name, EB.code, EM.name, ES.startTime, ES.endTime, ER.status
     SELECT SE.examRoomID, SE.studentID, S.name as studentName, S.email, S.dateOfBirth, S.major, S.yearOfStudy, S.status FROM Stu_ExamRoom AS SE
     INNER JOIN Student AS S ON SE.studentID = S.ID
     WHERE SE.examRoomID = @examRoomID
@@ -520,7 +525,7 @@ const queries = {
       INNER JOIN Examiner EM ON EM.ID = R.examinerID
     INNER JOIN ExamRoom ER ON ER.examSlotID = ES.ID
       WHERE E.status = 1 AND EM.ID = @examinerID AND ES.endTime < CAST(GETDATE() AS DATE)
-      GROUP BY EM.ID ,EM.name, S.code, C.name, C.subjectID, ES.startTime, ES.endTime, ES.ID, ER.ID, ER.classRoomID
+      GROUP BY EM.ID ,EM.name, S.code, C.name, C.subjectID, ES.startTime, ES.endTime, ES.ID, ER.ID, ER.classRoomID, ER.status
     COMMIT;`,
   income: `
     SELECT EM.ID ,EM.name, S.code, (SUM(DATEDIFF(MINUTE,ES.startTime, ES.endTime)) / 60 * 100000) as 'salary' 
@@ -530,8 +535,9 @@ const queries = {
     INNER JOIN ExamSlot ES ON ES.examBatchID = E.ID
     INNER JOIN Register R ON R.examSlotID = ES.ID
     INNER JOIN Examiner EM ON EM.ID = R.examinerID
-    WHERE E.status = 1 AND EM.ID = @examinerID AND S.code = @semesterCode
-    GROUP BY EM.ID ,EM.name, S.code
+    INNER JOIN ExamRoom ER ON ES.ID = ER.examSlotID
+    WHERE E.status = 1 AND EM.ID = @examinerID AND S.code = @semesterCode AND ER.status = 'present'
+    GROUP BY EM.ID ,EM.name, S.code, ER.status
       `,
   getAllIncome: `
     SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
@@ -541,8 +547,9 @@ const queries = {
     LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
     LEFT JOIN Register E ON E.examSlotID = D.ID
     LEFT JOIN Examiner F ON F.ID = E.examinerID
-    WHERE E.status = 1 AND A.code = @SemesterCode
-    GROUP BY F.ID ,F.name, A.code, A.ID
+    LEFT JOIN ExamRoom ER ON D.ID = ER.examSlotID
+    WHERE E.status = 1 AND A.code = @SemesterCode AND ER.status = 'present'
+    GROUP BY F.ID ,F.name, A.code, A.ID, ER.status
       `,
   getAllIncomeV2: `
     SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
@@ -552,8 +559,9 @@ const queries = {
     LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
     LEFT JOIN Register E ON E.examSlotID = D.ID
     LEFT JOIN Examiner F ON F.ID = E.examinerID
-    WHERE E.status = 1 
-    GROUP BY F.ID ,F.name, A.code, A.ID
+    LEFT JOIN ExamRoom ER ON D.ID = ER.examSlotID
+    WHERE E.status = 1 AND ER.status = 'present'
+    GROUP BY F.ID ,F.name, A.code, A.ID, ER.status
       `,
   getExamRoomByExaminerID: `SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, ER.status AS attendanceStatus, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
     FROM ExamSlot ES 
@@ -710,7 +718,7 @@ const queries = {
   // QUERY CHO STUDENT
   getExamSlotByStudentID: `
     BEGIN TRANSACTION;
-    SELECT DISTINCT ER.ID AS examRoom, ES.ID AS examSlot, ES.startTime, ES.endTime, EB.code AS examBatch, ER.classRoomID AS classRoom, SU.code AS subjectCode, SU.name AS subjectName
+    SELECT DISTINCT ER.ID AS examRoom, ES.ID AS examSlot, ES.startTime, ES.endTime, ES.status, EB.code AS examBatch, ER.classRoomID AS classRoom, SU.code AS subjectCode, SU.name AS subjectName
       FROM Student S 
       LEFT JOIN Stu_ExamRoom SE ON SE.studentID = S.ID
       LEFT JOIN ExamRoom ER ON ER.ID = SE.examRoomID
@@ -720,7 +728,7 @@ const queries = {
       LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
       LEFT JOIN Subject SU ON SU.ID = ER.subjectID
       LEFT JOIN Course C ON C.subjectID = SU.ID
-      WHERE S.ID = @StudentId AND ES.endTime > CAST(GETDATE() AS DATE)
+      WHERE S.ID = @StudentId AND ES.endTime > CAST(GETDATE() AS DATE) AND ES.status = 1
     COMMIT;
     `,
   // QUERY CHO USERS
@@ -815,13 +823,14 @@ const queries = {
           F.ID AS ExaminerID,
           SUM(DATEDIFF(MINUTE, D.startTime, D.endTime)) / 60 * 100000 AS Salary
       FROM Semester A
-      LEFT JOIN Course B ON A.ID = B.semesterID
-      LEFT JOIN ExamBatch C ON C.courseID = B.ID
-      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
-      LEFT JOIN Register E ON E.examSlotID = D.ID
-      LEFT JOIN Examiner F ON F.ID = E.examinerID
-      LEFT JOIN [Department] G ON G.examinerID = F.ID
-      WHERE E.status = 1
+      INNER JOIN Course B ON A.ID = B.semesterID
+      INNER JOIN ExamBatch C ON C.courseID = B.ID
+      INNER JOIN ExamSlot D ON D.examBatchID = C.ID
+      INNER JOIN Register E ON E.examSlotID = D.ID
+      INNER JOIN Examiner F ON F.ID = E.examinerID
+      INNER JOIN [Department] G ON G.examinerID = F.ID
+    INNER JOIN ExamRoom ER ON D.ID = ER.examSlotID
+      WHERE E.status = 1 AND ER.status = 'present'
       GROUP BY G.location, F.ID
     )
     SELECT [Department], SUM(Salary) AS TotalSalary
@@ -831,11 +840,13 @@ const queries = {
   // QUERY CHO SEMESTER
   getAllSalariesEachSemester: `
     SELECT A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
-      FROM Semester A 
-      LEFT JOIN Course B ON A.ID = B.semesterID
-      LEFT JOIN ExamBatch C ON C.courseID = B.ID
-      LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
-      GROUP BY A.code, A.ID
+    FROM Semester A 
+    INNER JOIN Course B ON A.ID = B.semesterID
+    LEFT JOIN ExamBatch C ON C.courseID = B.ID
+    LEFT JOIN ExamSlot D ON D.examBatchID = C.ID
+    LEFT JOIN ExamRoom ER ON D.ID = ER.examSlotID
+    WHERE ER.status = 'present'
+    GROUP BY A.code, A.ID
     `,
   updateAttendanceStatus: `
   BEGIN TRANSACTION;
