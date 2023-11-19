@@ -169,3 +169,13 @@ exports.getCurrentDateExamSlot = async function (req, res) {
         }
     })
 }
+
+exports.filterExamSlot = async function (req, res) {
+    examiner.filterExamSlot(req.body, function (err, data) {
+        if (err) {
+            res.status(400).send({ ok: false, isSuccess: false, result: data, error: err });
+        } else {
+            res.status(200).send({ ok: true, isSuccess: true, message: `Your input invalid from database.` ,result: data, error: err });
+        }
+    })
+}

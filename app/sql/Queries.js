@@ -623,6 +623,88 @@ const queries = {
       END;
       COMMIT
     `,
+  filterExamSlotAll:`SELECT
+    --Lấy thông tin ExamSlot
+    ES.ID AS examSlotID, ES.quantity AS quantity,
+    COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
+    ES.startTime, ES.endTime, ES.status,
+    -- Lấy thông tin ExamRoom
+    C.name AS courseName,
+    E.name AS examinerName, E.ID AS examinerID, ER.status AS attendanceStatus,
+    --Lấy thông tin Semester
+    S.name AS semesterName, S.ID AS semesterID
+    FROM Semester AS S
+    INNER JOIN Course AS C ON S.ID = C.semesterID
+    INNER JOIN ExamBatch AS EB ON C.ID = EB.courseID
+    INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
+    INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
+    LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
+    WHERE ER.examinerID = @examinerID
+    GROUP BY ES.ID, ES.quantity, ES.startTime,
+    ES.endTime, ES.status, C.name, S.name, S.ID,
+    E.name, E.ID, ER.status, ER.examinerID`,
+  filterExamSlotSemester:`SELECT
+    --Lấy thông tin ExamSlot
+    ES.ID AS examSlotID, ES.quantity AS quantity,
+    COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
+    ES.startTime, ES.endTime, ES.status,
+    -- Lấy thông tin ExamRoom
+    C.name AS courseName,
+    E.name AS examinerName, E.ID AS examinerID, ER.status AS attendanceStatus,
+    --Lấy thông tin Semester
+    S.name AS semesterName, S.ID AS semesterID
+    FROM Semester AS S
+    INNER JOIN Course AS C ON S.ID = C.semesterID
+    INNER JOIN ExamBatch AS EB ON C.ID = EB.courseID
+    INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
+    INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
+    LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
+    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID
+    GROUP BY ES.ID, ES.quantity, ES.startTime,
+    ES.endTime, ES.status, C.name, S.name, S.ID,
+    E.name, E.ID, ER.status, ER.examinerID`,
+  filterExamSlotMonth:`SELECT
+    --Lấy thông tin ExamSlot
+    ES.ID AS examSlotID, ES.quantity AS quantity,
+    COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
+    ES.startTime, ES.endTime, ES.status,
+    -- Lấy thông tin ExamRoom
+    C.name AS courseName,
+    E.name AS examinerName, E.ID AS examinerID, ER.status AS attendanceStatus,
+    --Lấy thông tin Semester
+    S.name AS semesterName, S.ID AS semesterID
+    FROM Semester AS S
+    INNER JOIN Course AS C ON S.ID = C.semesterID
+    INNER JOIN ExamBatch AS EB ON C.ID = EB.courseID
+    INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
+    INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
+    LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
+    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID AND MONTH(ES.startTime) = @month
+    GROUP BY ES.ID, ES.quantity, ES.startTime,
+    ES.endTime, ES.status, C.name, S.name, S.ID,
+    E.name, E.ID, ER.status, ER.examinerID`,
+  filterExamSlotWeek:`SELECT
+    --Lấy thông tin ExamSlot
+    ES.ID AS examSlotID, ES.quantity AS quantity,
+    COUNT(CASE WHEN ER.examinerID IS NOT NULL THEN ER.ID END) AS currentExaminer,
+    ES.startTime, ES.endTime, ES.status,
+    -- Lấy thông tin ExamRoom
+    C.name AS courseName, E.name AS examinerName,
+    E.ID AS examinerID, ER.status AS attendanceStatus,
+    --Lấy thông tin Semester
+    S.name AS semesterName, S.ID AS semesterID
+    FROM Semester AS S
+    INNER JOIN Course AS C ON S.ID = C.semesterID
+    INNER JOIN ExamBatch AS EB ON C.ID = EB.courseID
+    INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
+    INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
+    LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
+    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID
+          AND MONTH(ES.startTime) = @month
+          AND (DATEPART(DAY, ES.startTime) - 1) / 7 + 1 = @week
+    GROUP BY ES.ID, ES.quantity, ES.startTime,
+          ES.endTime, ES.status, C.name, S.name, S.ID,
+          E.name, E.ID, ER.status, ER.examinerID;`,
   // QUERY CHO DOWNLOAD EXCEL
 
   // QUERY CHO STUDENT

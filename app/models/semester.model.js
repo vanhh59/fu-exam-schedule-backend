@@ -1,17 +1,6 @@
 var { conn, sql } = require('../../connect');
 const queries = require("../sql/Queries");
 
-// CREATE TABLE Semester
-// (
-//     ID char(20) PRIMARY KEY,
-//     code nvarchar(50),
-//     name nvarchar(100),
-//     year int,
-//     startDate datetime,
-//     endDate datetime,
-//     status bit
-// );
-
 module.exports = class Semester {
     async getAll(result) {
         let pool = await conn;

@@ -46,5 +46,8 @@ module.exports = function (app) {
 
     //route xóa theo id
     app.delete('/examiner/:id', isAuthenticated, isAuthorized(["Admin", "Testing Admin"]), examinerController.deleteExaminer);
+
+    //router filter thông tin ca thi ExamSlot
+    app.get('/examiner/exam-schedule/filter', isAuthenticated, isAuthorized(["Admin", "Testing Admin", "Lecturer"]), examinerController.filterExamSlot)
 }
 

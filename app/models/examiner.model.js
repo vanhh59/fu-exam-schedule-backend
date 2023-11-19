@@ -252,13 +252,40 @@ module.exports = class Examiner {
     let sqlQuery = queries.getRegisteredInformation;
     return await pool
       .request()
-      .input("@examinerID", sql.VarChar, examinerID)
-      .input("@examSlotID", sql.VarChar, Examslot)
+      .input("examinerID", sql.VarChar, examinerID)
+      .input("examSlotID", sql.VarChar, Examslot)
       .query(sqlQuery, function (error, data) {
         if (data) {
           result(null, data);
         } else {
           result(true, null);
+        }
+      });
+  }
+
+  async filterExamSlot(examinerData, result) {
+    let pool = await conn;
+    let sqlQuery = queries.filterExamSlotAll;
+    if (examinerData?.semesterID != '') {
+      sqlQuery = queries.filterExamSlotSemester;
+      if (examinerData?.month != '') {
+        sqlQuery = queries.filterExamSlotMonth;
+        if (examinerData?.week != '') {
+          sqlQuery = queries.filterExamSlotWeek;
+        }
+      }
+    }
+    return await pool
+      .request()
+      .input("examinerID", sql.VarChar, examinerData?.examinerID)
+      .input("semesterID", sql.VarChar, examinerData?.semesterID)
+      .input("month", sql.Int, examinerData?.month)
+      .input("week", sql.Int, examinerData?.week)
+      .query(sqlQuery, function (error, data) {
+        if (data?.recordset && data?.recordset.length > 0) {
+          result(null, data);
+        } else {
+          result(error, null);
         }
       });
   }
