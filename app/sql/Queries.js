@@ -829,7 +829,7 @@ const queries = {
       INNER JOIN Register E ON E.examSlotID = D.ID
       INNER JOIN Examiner F ON F.ID = E.examinerID
       INNER JOIN [Department] G ON G.examinerID = F.ID
-    INNER JOIN ExamRoom ER ON D.ID = ER.examSlotID
+      INNER JOIN ExamRoom ER ON D.ID = ER.examSlotID
       WHERE E.status = 1 AND ER.status = 'present'
       GROUP BY G.location, F.ID
     )

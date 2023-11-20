@@ -263,24 +263,35 @@ module.exports = class Examiner {
       });
   }
 
-  async filterExamSlot(examinerData, result) {
+  async filterExamSlot(examinerID, semesterID, month, week, result) {
     let pool = await conn;
     let sqlQuery = queries.filterExamSlotAll;
-    if (examinerData?.semesterID != '') {
+    if (semesterID != null && semesterID != undefined && semesterID != '""') {
       sqlQuery = queries.filterExamSlotSemester;
-      if (examinerData?.month != '') {
+      if (month != null && month != undefined && month != '""') {
         sqlQuery = queries.filterExamSlotMonth;
-        if (examinerData?.week != '') {
+        if (week != null && week != undefined && week != '""') {
           sqlQuery = queries.filterExamSlotWeek;
         }
       }
     }
+    if (semesterID == null || semesterID == '""') {
+      semesterID = ''
+    }
+
+    if (month == null || month == '""') {
+      month = 0
+    }
+
+    if (week == null || week == '""') {
+      week = 0
+    }
     return await pool
       .request()
-      .input("examinerID", sql.VarChar, examinerData?.examinerID)
-      .input("semesterID", sql.VarChar, examinerData?.semesterID)
-      .input("month", sql.Int, examinerData?.month)
-      .input("week", sql.Int, examinerData?.week)
+      .input("examinerID", sql.VarChar, examinerID)
+      .input("semesterID", sql.VarChar, semesterID)
+      .input("month", sql.Int, month)
+      .input("week", sql.Int, week)
       .query(sqlQuery, function (error, data) {
         if (data?.recordset && data?.recordset.length > 0) {
           result(null, data?.recordset);
