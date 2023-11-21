@@ -106,6 +106,7 @@ exports.updateRegister = async function (req, res) {
 
 exports.importExcelFile = async function (req, res) {
   try {
+    let error = '';
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).send("No files were uploaded.");
     }
@@ -113,6 +114,7 @@ exports.importExcelFile = async function (req, res) {
     const importExcelResult = await new Promise((resolve, reject) => {
       dashboard.importExcelFile(req, (err, data) => {
         if (err) {
+          error = err;
           return reject(err);
         }
         resolve(data);
@@ -151,14 +153,13 @@ exports.importExcelFile = async function (req, res) {
       if (importExcelResult) {
         res.status(200).send({ ok: true, isSuccess: true, message:"Import excel successfully." });
       } else {
-        res.status(400).send({ ok: false, isSuccess: false,  message:"Import excel fail." });
+        res.status(400).send({ ok: false, isSuccess: false,  message: `Import excel fail: ${error}` });
       }
     } else {
       console.log("Import failed. Update skipped.");
-      res.status(400).send({ ok: false, isSuccess: false, message:"Import excel fail." });
+      res.status(400).send({ ok: false, isSuccess: false, message: `Import excel fail: ${error}` });
     }
   } catch (error) {
-    console.error("Error:", error);
-    res.status(400).send({ ok: false, isSuccess: false,  message:"Import excel fail." });
+    res.status(400).send({ ok: false, isSuccess: false,  message: `Import excel fail: ${error}`});
   }
 };

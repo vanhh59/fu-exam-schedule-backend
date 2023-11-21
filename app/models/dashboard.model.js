@@ -197,8 +197,7 @@ module.exports = class Dashboard {
             await request.query(sqlQuery);
             console.log("Inserted row:", array);
           } catch (error) {
-            console.error("Error:", error);
-            result(error, null);
+            result(error?.message, null);
           }
         };
         await handleData();
@@ -206,8 +205,7 @@ module.exports = class Dashboard {
       var sqlQuery = queries.importExcelFile;
       result(null, (data = "Data inserted successfully."));
     } catch (error) {
-      console.error("Error:", error);
-      result(error, null);
+      result(error?.message, null);
     }
   }
 
@@ -234,31 +232,49 @@ module.exports = class Dashboard {
     if (students != null) {
       //Get the date before exam start
       let currentDay = new Date();
-      console.log(students.recordset)
       let targetDate = new Date(students.recordset[0].startTime.getTime());
       //Check whether the targetDate is after or before currentDate.
       targetDate.setDate(students.recordset[0].startTime.getDate() - 1);
       if (currentDay > targetDate) {
         return 1;
       }
+      
+      // Chuyển đổi type DateTime thành kiểu Wed, 13/12/2023 at 00:30:00 
+      const inputDateString = students.recordset[0].startTime;
+
+      // Parse the input date string
+      const inputDate = new Date(inputDateString);
+
+      // Format the date as required
+      const dayOfWeek = inputDate.toLocaleDateString('en-US', { weekday: 'short' });
+      const day = inputDate.getDate();
+      const month = inputDate.toLocaleDateString('en-US', { month: 'short' });
+      const year = inputDate.getFullYear();
+      const time = inputDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      // Create the desired output string
+      const outputString = `${dayOfWeek}, ${day}/${month}/${year} at ${time}`;
+
       //email message option
       const mailOption = {
-        from: "vietanhcode@gmail.com",
+        from: "nguyenhuykhaipch94@gmail.com",
         to: "",
-        subject: "Email from Node_App",
-        text: `There will be an exam at ${students.recordset[0].startTime}. Please go to fu-exam-schedule for more details.`,
+        subject: "[REMIND] EMAIL FROM FU_EXAM_SCHEDULE APPLICATION",
+        text: `There will be an exam at ${outputString}. Please go to fu-exam-schedule for more details.`,
       };
       //email transport configuration
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: "vietanhcode@gmail.com",
-          pass: "Swp391@@@",
+          user: "nguyenhuykhaipch94@gmail.com",
+          pass: "deao tttb zdia nfev",
         },
       });
       //Schedule a date
       let job = new CronJob(
-        '*/5 * * * *',
+        // '*/5 * * * *', // Gửi 5 phút 1 lần
+        // '* * * * *', // Gửi mỗi phút 1 lần
+        targetDate, // Gửi trước ngày thi 1 ngày
         function () {
           for (let value of students.recordset) {
             mailOption.to = value.email;
@@ -266,7 +282,7 @@ module.exports = class Dashboard {
               if (error) {
                 return 3;
               } else {
-                console.log("email send: " + info.response);
+                console.log("SEND MAIL: " + info.response);
               }
             });
           }
