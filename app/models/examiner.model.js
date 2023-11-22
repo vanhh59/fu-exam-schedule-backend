@@ -275,16 +275,21 @@ module.exports = class Examiner {
         }
       }
     }
+    
+    if (examinerID == null || examinerID == '""') {
+      examinerID = ''
+    }
+
     if (semesterID == null || semesterID == '""') {
       semesterID = ''
     }
 
     if (month == null || month == '""') {
-      month = 0
+      month = ''
     }
 
     if (week == null || week == '""') {
-      week = 0
+      week = ''
     }
     return await pool
       .request()
