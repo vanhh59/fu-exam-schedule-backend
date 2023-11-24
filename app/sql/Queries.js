@@ -12,7 +12,7 @@ const queries = {
     UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID
     SELECT @emailUser = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID
     SELECT @studentID = S.ID FROM Student AS S WHERE S.email = @emailUser
-    UPDATE Student SET status = 0 WHERE email = @emailUser
+    DELETE Student WHERE email = @emailUser
     UPDATE Stu_ExamRoom SET status = 0 WHERE studentID = @studentID
     COMMIT;`,
   authorizeUserLecturer: `BEGIN TRANSACTION;
@@ -38,7 +38,7 @@ const queries = {
       SET @NewID = 'EX' + CAST(@LastID AS NVARCHAR(10));
     SELECT @studentID = ID FROM Student WHERE email = @email
       INSERT INTO [dbo].[Examiner] VALUES (@NewID, @name, @email, 0, 'No information yet', 1);
-    UPDATE Student SET status = 0 WHERE ID = @studentID
+    DELETE Student WHERE ID = @studentID
     UPDATE Stu_ExamRoom SET status = 0 WHERE studentID = @studentID
       SELECT @name, @email, @NewID AS examinerID
     COMMIT;`,
@@ -236,7 +236,7 @@ const queries = {
                     EM2.name AS examinerName
                 FROM Register AS R
                 INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ER.examSlotID = R.examSlotID
+                WHERE ER.examSlotID = R.examSlotID  AND R.status = 1
                 FOR JSON PATH
             ) AS ExaminerRegisterList,
             (
@@ -300,7 +300,7 @@ const queries = {
                     EM2.name AS examinerName
                 FROM Register AS R
                 INNER JOIN Examiner AS EM2 ON R.examinerID = EM2.ID
-                WHERE ER.examSlotID = R.examSlotID
+                WHERE ER.examSlotID = R.examSlotID  AND R.status = 1
                 FOR JSON PATH
             ) AS ExaminerRegisterList,
             (
@@ -565,13 +565,13 @@ const queries = {
       `,
   getExamRoomByExaminerID: `SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, ER.status AS attendanceStatus, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
     FROM ExamSlot ES 
-    LEFT JOIN Register RE ON RE.examSlotID = ES.ID
-    LEFT JOIN Examiner EX ON EX.ID = RE.examinerID
-    LEFT JOIN ExamBatch EB ON EB.ID = ES.examBatchID
-    LEFT JOIN Course C ON C.ID = EB.courseID
-    LEFT JOIN Semester SE ON SE.ID = C.semesterID
-    LEFT JOIN ExamRoom ER ON ER.examSlotID = ES.ID
-    LEFT JOIN Subject S ON ER.subjectID = S.ID
+    INNER JOIN Register RE ON RE.examSlotID = ES.ID
+    INNER JOIN Examiner EX ON EX.ID = RE.examinerID
+    INNER JOIN ExamBatch EB ON EB.ID = ES.examBatchID
+    INNER JOIN Course C ON C.ID = EB.courseID
+    INNER JOIN Semester SE ON SE.ID = C.semesterID
+    INNER JOIN ExamRoom ER ON ER.examSlotID = ES.ID
+    INNER JOIN Subject S ON ER.subjectID = S.ID
     WHERE EX.ID = @examinerID AND RE.status = 1`,
   getFinishedExamSlot: `
     BEGIN TRANSACTION;
@@ -637,7 +637,7 @@ const queries = {
     COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
     ES.startTime, ES.endTime, ES.status,
     -- Lấy thông tin ExamRoom
-    C.name AS courseName,
+    C.name AS courseName, ER.classRoomID as classRoomCode, ER.ID as examRoomID,
     E.name AS examinerName, E.ID AS examinerID, ER.status AS attendanceStatus,
     --Lấy thông tin Semester
     S.name AS semesterName, S.ID AS semesterID
@@ -649,7 +649,7 @@ const queries = {
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
     WHERE ER.examinerID = @examinerID
     GROUP BY ES.ID, ES.quantity, ES.startTime,
-    ES.endTime, ES.status, C.name, S.name, S.ID,
+    ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
     E.name, E.ID, ER.status, ER.examinerID`,
   filterExamSlotSemester:`SELECT
     --Lấy thông tin ExamSlot
@@ -657,7 +657,7 @@ const queries = {
     COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
     ES.startTime, ES.endTime, ES.status,
     -- Lấy thông tin ExamRoom
-    C.name AS courseName,
+    C.name AS courseName, ER.classRoomID as classRoomCode, ER.ID as examRoomID,
     E.name AS examinerName, E.ID AS examinerID, ER.status AS attendanceStatus,
     --Lấy thông tin Semester
     S.name AS semesterName, S.ID AS semesterID
@@ -669,7 +669,7 @@ const queries = {
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
     WHERE ER.examinerID = @examinerID AND S.ID = @semesterID
     GROUP BY ES.ID, ES.quantity, ES.startTime,
-    ES.endTime, ES.status, C.name, S.name, S.ID,
+    ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
     E.name, E.ID, ER.status, ER.examinerID`,
   filterExamSlotMonth:`SELECT
     --Lấy thông tin ExamSlot
@@ -677,7 +677,7 @@ const queries = {
     COUNT(CASE WHEN ER.examinerID <> '' THEN ER.ID END) AS currentExaminer,
     ES.startTime, ES.endTime, ES.status,
     -- Lấy thông tin ExamRoom
-    C.name AS courseName,
+    C.name AS courseName, ER.classRoomID as classRoomCode, ER.ID as examRoomID,
     E.name AS examinerName, E.ID AS examinerID, ER.status AS attendanceStatus,
     --Lấy thông tin Semester
     S.name AS semesterName, S.ID AS semesterID
@@ -689,7 +689,7 @@ const queries = {
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
     WHERE ER.examinerID = @examinerID AND S.ID = @semesterID AND MONTH(ES.startTime) = @month
     GROUP BY ES.ID, ES.quantity, ES.startTime,
-    ES.endTime, ES.status, C.name, S.name, S.ID,
+    ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
     E.name, E.ID, ER.status, ER.examinerID`,
   filterExamSlotWeek:`SELECT
     --Lấy thông tin ExamSlot
@@ -697,7 +697,7 @@ const queries = {
     COUNT(CASE WHEN ER.examinerID IS NOT NULL THEN ER.ID END) AS currentExaminer,
     ES.startTime, ES.endTime, ES.status,
     -- Lấy thông tin ExamRoom
-    C.name AS courseName, E.name AS examinerName,
+    C.name AS courseName, E.name AS examinerName, ER.classRoomID as classRoomCode, ER.ID as examRoomID,
     E.ID AS examinerID, ER.status AS attendanceStatus,
     --Lấy thông tin Semester
     S.name AS semesterName, S.ID AS semesterID
@@ -711,7 +711,7 @@ const queries = {
           AND MONTH(ES.startTime) = @month
           AND (DATEPART(DAY, ES.startTime) - 1) / 7 + 1 = @week
     GROUP BY ES.ID, ES.quantity, ES.startTime,
-          ES.endTime, ES.status, C.name, S.name, S.ID,
+          ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
           E.name, E.ID, ER.status, ER.examinerID;`,
   // QUERY CHO DOWNLOAD EXCEL
 
@@ -759,7 +759,7 @@ const queries = {
   getUserByID: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.ID = @ID`,
   // QUERY CHO REGISTER
   getRegisterWithExaminerInfo: `SELECT R.examSlotID, R.examinerID, E.name, R.status FROM Register AS R
-    INNER JOIN Examiner AS E ON R.examinerID = E.ID`,
+  INNER JOIN Examiner AS E ON R.examinerID = E.ID WHERE R.status = 1`,
   register: `BEGIN TRANSACTION;
     DECLARE @ID VARCHAR(10);
     DECLARE @userID VARCHAR(10);
@@ -811,7 +811,7 @@ const queries = {
         ELSE 0
     END AS Result;`,
   updateRegister: `BEGIN TRANSACTION;
-    UPDATE [dbo].[Register] SET [status] = 0 WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
+    DELETE [dbo].[Register] WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
     UPDATE [dbo].[ExamRoom] SET [examinerID] = '' WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
     COMMIT`,
   getListExaminerRegister: `SELECT R.examinerID, R.examSlotID, R.status FROM [dbo].[Register] AS R WHERE R.examSlotID = @examSlotID AND R.status=1`,

@@ -266,31 +266,33 @@ module.exports = class Examiner {
   async filterExamSlot(examinerID, semesterID, month, week, result) {
     let pool = await conn;
     let sqlQuery = queries.filterExamSlotAll;
-    if (semesterID != null && semesterID != undefined && semesterID != '""') {
+
+    if (examinerID == null || examinerID == '""' || examinerID == undefined || examinerID == 'undefined') {
+      examinerID = ''
+    }
+
+    if (semesterID == null || semesterID == '""' || semesterID == undefined || semesterID == 'undefined') {
+      semesterID = ''
+    }
+
+    if (month == null || month == '""' || month == undefined || month == 'undefined') {
+      month = ''
+    }
+
+    if (week == null || week == '""' || week == undefined || week == 'undefined') {
+      week = ''
+    }
+    console.log(typeof examinerID,typeof semesterID,typeof month,typeof week);
+    if (semesterID != null && semesterID != undefined && semesterID != '""' && semesterID != '' && semesterID != 'undefined') {
       sqlQuery = queries.filterExamSlotSemester;
-      if (month != null && month != undefined && month != '""') {
+      if (month != null && month != undefined && month != '""' && month != '' && month != 'undefined') {
         sqlQuery = queries.filterExamSlotMonth;
-        if (week != null && week != undefined && week != '""') {
+        if (week != null && week != undefined && week != '""' && week != '' && week != 'undefined') {
           sqlQuery = queries.filterExamSlotWeek;
         }
       }
     }
     
-    if (examinerID == null || examinerID == '""') {
-      examinerID = ''
-    }
-
-    if (semesterID == null || semesterID == '""') {
-      semesterID = ''
-    }
-
-    if (month == null || month == '""') {
-      month = ''
-    }
-
-    if (week == null || week == '""') {
-      week = ''
-    }
     return await pool
       .request()
       .input("examinerID", sql.VarChar, examinerID)
