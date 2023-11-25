@@ -110,6 +110,7 @@ module.exports = class ExamSlot {
             .input('startTime', sql.DateTime, examSlot.startTime)
             .input('endTime', sql.DateTime, examSlot.endTime)
             .input('quantity', sql.Int, examSlot.quantity)
+            .input('code', sql.VarChar, examSlot.code)
             .query(sqlQuery, function (error, data) {
                 if (data?.recordset) {
                     result(null, data.recordset);

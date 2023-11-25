@@ -1,20 +1,32 @@
 const queries = {
   // QUERY CHO AUTH
+
+  //Note api getAllUsers: Lấy toàn bộ thông tin Users
   getAllUsers: ` SELECT U.ID, U.Role, U.userName, U.email, u.status FROM dbo.Users AS U`,
+
+  //Note api checkAuthenticate: Kiểm tra user đầu vào đã được Authenticate chưa
   checkAuthenticate: `SELECT U.Role, U.userName FROM dbo.Users AS U
     WHERE U.email = '@email'`,
+
+  //Note api checkAuthorize: Kiểm tra user đầu vào đã được Authorize chưa
   checkAuthorize: `SELECT U.Role, U.userName FROM dbo.Users AS U
     WHERE U.email = '@email' AND U.Role = '@role'`,
+
+  //Note api authorizeUserStudent: Phân quyền thành role Student
   authorizeUserStudent: `UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID`,
+
+  //Note api authorizeUser: Phân quyền thành role khác
   authorizeUser:`BEGIN TRANSACTION;
     DECLARE @emailUser NVARCHAR(200)
     DECLARE @studentID VARCHAR(200)
     UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID
     SELECT @emailUser = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID
     SELECT @studentID = S.ID FROM Student AS S WHERE S.email = @emailUser
+    DELETE Stu_ExamRoom WHERE studentID = @studentID
     DELETE Student WHERE email = @emailUser
-    UPDATE Stu_ExamRoom SET status = 0 WHERE studentID = @studentID
     COMMIT;`,
+
+  //Note api authorizeUserLecturer: Phân quyền thành role Lecturer
   authorizeUserLecturer: `BEGIN TRANSACTION;
     UPDATE [dbo].[Users] SET [Role] = @Role WHERE ID = @ID;
     DECLARE @LastID INT;
@@ -37,12 +49,16 @@ const queries = {
       SELECT @name = U.userName, @email = U.email FROM [dbo].[Users] AS U WHERE U.ID = @ID;
       SET @NewID = 'EX' + CAST(@LastID AS NVARCHAR(10));
     SELECT @studentID = ID FROM Student WHERE email = @email
-      INSERT INTO [dbo].[Examiner] VALUES (@NewID, @name, @email, 0, 'No information yet', 1);
+    INSERT INTO [dbo].[Examiner] VALUES (@NewID, @name, @email, 0, 'No information yet', 1);
+    DELETE Stu_ExamRoom WHERE studentID = @studentID
     DELETE Student WHERE ID = @studentID
-    UPDATE Stu_ExamRoom SET status = 0 WHERE studentID = @studentID
-      SELECT @name, @email, @NewID AS examinerID
+    SELECT @name, @email, @NewID AS examinerID
     COMMIT;`,
+
+  //Note api checkEmailIsValid: Check account có tồn tại không
   checkEmailIsValid: `SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.Users WHERE email = @email) THEN 1 ELSE 0 END AS EmailExists`,
+
+  //Note api registerUser: Đăng ký account
   registerUser: `BEGIN TRANSACTION;
     DECLARE @ID VARCHAR(200)
     DECLARE @studentID VARCHAR(200)
@@ -63,7 +79,10 @@ const queries = {
     INSERT INTO [dbo].[Student] ([ID], [name], [email], [major], [yearOfStudy], [status])
       VALUES (@studentID, @userName, @email, 'No information yet', 'No information yet',  1)
     COMMIT;`,
+
   // QUERY CHO CLASS ROOM
+
+  //Note api deleteClassRoom: Xóa lớp học
   deleteClassRoom: `BEGIN TRANSACTION;
     DECLARE @ClassRoomExists BIT;
     SELECT @ClassRoomExists = CASE
@@ -84,10 +103,18 @@ const queries = {
         SELECT CAST(1 AS BIT) AS Result;
       END;
       COMMIT`,
+
   // QUERY CHO COURSE
+
+  //Note api getCourseByID: Lấy thông tin Course by ID
   getCourseByID: `SELECT * FROM dbo.Course WHERE ID = @courseID`,
+
   // QUERY CHO DASHBOARD
+
+  //Note api importExcelFile: Nhập thông tin sinh viên bằng Excel file
   importExcelFile: `INSERT INTO Stu_ExamRoom (studentID, examRoomID, status) VALUES (@studentID, @examRoomID, 1)`,
+
+  //Note api getExamSchedule: Lấy thông tin lịch thi
   getExamSchedule: `SELECT
     ES.ID AS 'examSlotID',
     C.name AS 'courseName',
@@ -110,6 +137,8 @@ const queries = {
     INNER JOIN [dbo].[Semester] AS S ON C.semesterID = S.ID
     WHERE ES.status = 1
     ORDER BY ES.startTime DESC`,
+
+  //Note api isConflictDuringStartEndTime: Kiểm tra thời gian nhập vào để tạo ExamSlot có bị conflict hay không?
   isConflictDuringStartEndTime: `
     DECLARE @NewStartTime DATETIME = @startTime;
     DECLARE @NewEndTime DATETIME = @endTime;
@@ -135,6 +164,8 @@ const queries = {
         SET @IsConflict = 0;
     END
     SELECT @IsConflict AS Result;`,
+
+  //Note api isConflictRule15Minutes: Kiểm tra thời gian nhập vào để tạo ExamSlot có bị conflict hay không?
   isConflictRule15Minutes: `DECLARE @NewStartTime DATETIME = @endTime;
     DECLARE @IsConflict BIT;
     IF EXISTS (
@@ -150,7 +181,10 @@ const queries = {
         SET @IsConflict = 0;
     END
     SELECT @IsConflict AS Result;`,
+
   // QUERY CHO EXAMSLOT
+
+  //Note api createExamSlotAndExamBatch: Tạo ExamSlot và ExamBatch
   createExamSlotAndExamBatch: `BEGIN TRANSACTION;
     INSERT INTO ExamBatch (courseID, code, date, location, status) VALUES (@courseID, @code, @startTime, 'FPTU', 1);
     DECLARE @examBatchID INT;
@@ -173,7 +207,8 @@ const queries = {
     VALUES (@examSlotID, @subjectID, 1);
     SELECT @subjectID as subjectID, @subjectName as subjectName, @courseID1 as courseID, @examSlotID as examSlotID, 1 as status;
     COMMIT`,
-  // 
+  
+  //Note api deleteExamSlot: Xóa ExamSlot, nếu ExamSlot chưa diễn ra thì được xóa
   deleteExamSlot: `BEGIN TRANSACTION;
     DECLARE @ExamSlotExists BIT;
     SELECT @ExamSlotExists = CASE
@@ -193,12 +228,17 @@ const queries = {
         SELECT CAST(1 AS BIT) AS Result;
     END;
     COMMIT`,
+
+  //Note api updateExamSlot: Check ngày nhập đầu vào >= ngày thi và quantity >= 1 mới cho uptate
   updateExamSlot: `BEGIN TRANSACTION;
     DECLARE @MinValidDate DATETIME
+    DECLARE @examBatchID INT
     SET @MinValidDate = DATEADD(DAY, 7, GETDATE())
     
     IF @startTime >= @MinValidDate AND @endTime >= @MinValidDate AND @quantity >= 1
     BEGIN
+      SELECT @examBatchID = ES.examBatchID FROM ExamSlot AS ES WHERE ID = @ID
+      UPDATE ExamBatch SET date = @startTime, code = @code WHERE ID = @examBatchID;
         UPDATE ExamSlot
         SET startTime = @startTime,
             endTime = @endTime,
@@ -211,6 +251,8 @@ const queries = {
         SELECT CAST(0 AS BIT) AS Result;
     END
     COMMIT;`,
+
+  //Note api getExamSlotFullInfo: Lấy toàn bộ thông tin ExamSlot và các thông tin liên quan
   getExamSlotFullInfo: `SELECT
     ES.ID AS examSlotID,
     EB.code,
@@ -275,6 +317,8 @@ const queries = {
     GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;
     `,
+
+  //Note api getExamSlotFullInfoByID: Lấy toàn bộ thông tin ExamSlot và các thông tin liên quan by ExamSlotID
   getExamSlotFullInfoByID: `SELECT
     ES.ID AS examSlotID,
     EB.code,
@@ -338,6 +382,8 @@ const queries = {
     WHERE ES.ID = @examSlotID AND ES.status = 1
     GROUP BY ES.ID, EB.code, ES.startTime, ES.endTime, ES.status, ES.quantity
     FOR JSON PATH;`,
+
+  //Note api getAvailableSlots: Lấy thông tin ExamSlot đang sẵn có (ExamSlot trống)
   getAvailableSlots: `
     SELECT EB.code, E.ID AS examSlotID, E.startTime, E.endTime, E.quantity AS maximumQuantity,
     COUNT(tableExamRoom.examSlotID) AS currentQuantity, tableExamRoom.status AS attendanceStatus,
@@ -359,16 +405,24 @@ const queries = {
             WHERE examinerID = @examinerID AND status = 1 )
     GROUP BY EB.code, E.ID, E.startTime, E.endTime, E.quantity, tableExamRoom.examSlotID, tableExamRoom.status, E.status, S.code
       `,
+
+  //Note api getCurrentDateExamSlot: Lấy thông tin ExamSlot đang có trong hôm nay
   getCurrentDateExamSlot: `
     SELECT *
     FROM ExamSlot e
     WHERE e.startTime = CAST(GETDATE() AS DATE)
     `,
+  
+  //Note api getExamSlotNull: Lấy thông tin ExamSlot đang trống
   getExamSlotNull: `SELECT ES.ID, ES.examBatchID, ES.startTime, ES.endTime, ES.quantity, ES.status FROM ExamSlot AS ES WHERE ES.quantity = 0 ORDER BY ES.ID DESC`,
+
+  //Note api getExamSlotInfo: Lấy thông tin ExamSlot
   getExamSlotInfo: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, ES.quantity, EB.location, ES.status, C.name FROM ExamSlot AS ES
     INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     INNER JOIN Course AS C ON EB.courseID = C.ID
     WHERE ES.status = 1`,
+
+  //Note api updateQuantityExamSlot: Cập nhật thông tin quantity của ExamSlot
   updateQuantityExamSlot: `BEGIN TRANSACTION;
     DECLARE @quantity INT
     DECLARE @capacity INT
@@ -382,9 +436,13 @@ const queries = {
     SELECT @quantity as quantity, @capacity as capacity, @totalStudent as total
     UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID
     COMMIT`,
+
+  //Note api getExamSlotInfoById: Lấy thông tin của ExamSlot by ExamSlotID
   getExamSlotInfoById: `SELECT ES.ID AS examSlotID, ES.examBatchID, ES.startTime, ES.endTime, EB.code AS examBatchCode, ES.quantity, EB.location, ES.status, C.name FROM ExamSlot AS ES
     INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     INNER JOIN Course AS C ON EB.courseID = C.ID WHERE ES.ID = @ID`,
+
+  //Note api getSubjectIDSubjectNameByExamSlotID: Lấy thông tin của ExamSlot, SubjectID, SubjectName by ExamSlotID
   getSubjectIDSubjectNameByExamSlotID: `SELECT S.name as subjectName, S.ID as subjectID, ES.ID as examSlotID FROM ExamSlot AS ES
     INNER JOIN ExamBatch AS EB ON ES.examBatchID = EB.ID
     INNER JOIN Course AS C ON EB.courseID = C.ID
@@ -393,17 +451,23 @@ const queries = {
   // QUERY CHO EXAMBATCH
 
   // QUERY CHO EXAMROOM
+
+  //Note api getInfoExamRoom: Lấy thông tin của ExamRoom
   getInfoExamRoom: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building, ER.status AS attendanceStatus FROM dbo.ExamRoom AS ER
     INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
     INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
     INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
     INNER JOIN dbo.ExamSlot AS ES ON ER.examSlotID = ES.ID
     WHERE ES.status = 1`,
+
+  //Note api getInfoExamRoomById: Lấy thông tin của ExamRoom by ID
   getInfoExamRoomById: `SELECT ER.ID AS examRoomID, ER.subjectID, S.name as subjectName, ER.examinerID, E.name AS examinerName, ER.examSlotID, CR.code AS classRoomCode, CR.building, ER.status AS attendanceStatus FROM dbo.ExamRoom AS ER
     INNER JOIN dbo.Subject AS S ON ER.subjectID = S.ID
     INNER JOIN dbo.Examiner AS E ON ER.examinerID = E.ID
     INNER JOIN dbo.Classroom AS CR ON ER.classRoomID = CR.ID
     WHERE ER.ID = @ID`,
+
+  //Note api updateExamRoomAddExaminer: Đổi Examiner của một ExamRoom by ExamRoomID
   updateExamRoomAddExaminer: `BEGIN TRANSACTION;
     DECLARE @ExaminerExists BIT;
     SELECT @ExaminerExists = CASE
@@ -423,6 +487,8 @@ const queries = {
     SELECT CAST(1 AS BIT) AS Result;
     END;
     COMMIT`,
+
+  //Note api getExamRoomFullInfo: Lấy thông tin của ExamRoom và những thông tin liên quan
   getExamRoomFullInfo: `BEGIN TRANSACTION;
     --Lấy thông tin ExamRoom
     SELECT
@@ -450,8 +516,12 @@ const queries = {
     INNER JOIN Student AS S ON SE.studentID = S.ID
     WHERE SE.examRoomID = @examRoomID
     COMMIT;`,
+
+  //Note api addStudentIntoExamRoom: Nhập thủ công thông tin Student vào Stu_ExamRoom
   addStudentIntoExamRoom: `INSERT INTO [dbo].[Stu_ExamRoom] (examRoomID, studentID, status)
     VALUES (@examRoomID, @studentID, 1)`,
+
+  //Note api fieldInfoExamSchedule: Nhập thông tin cho ExamRoom
   fieldInfoExamSchedule: `BEGIN TRANSACTION;
     DECLARE @ExamRoomExists BIT;
     SELECT @ExamRoomExists = CASE
@@ -486,6 +556,8 @@ const queries = {
       SELECT CAST(1 AS BIT) AS Result;
     END;
     COMMIT`,
+
+  //Note api getExamRoomInSemester: Lấy danh sách ExamRoom trong một kỳ cụ thể
   getExamRoomInSemester: `
     SELECT C.ID AS 'CourseID', S.name as 'SubjectName', EB.code as 'examBatch_code',
     ES.startTime, ES.endTime, EX.name as 'ExaminerName', SE.ID as 'SemesterID',
@@ -500,6 +572,8 @@ const queries = {
     LEFT JOIN ExamBatch EB ON EB.courseID = C.ID
     WHERE SE.code = @SemesterCode
     `,
+
+  //Note api getStudentInRoom: Lấy danh sách Student trong một ExamSlot (ca thi)
   getStudentInRoom: `
     SELECT S.name, S.email, ES.startTime, ES.ID 
     FROM Student S 
@@ -508,7 +582,10 @@ const queries = {
     LEFT JOIN ExamSlot ES ON ES.ID = ER.examSlotID
     WHERE ES.ID = @examSlotID
     `,
+
   // QUERY CHO EXAMINER
+
+  //Note api getInfoSalaryAndExaminerAndExamSlotAndExamRoom: Lấy thông tin lương của Examiner đã coi thi ca nào và phòng nào?
   getInfoSalaryAndExaminerAndExamSlotAndExamRoom: `BEGIN TRANSACTION;
     SELECT E.ID, E.email, E.name, E.experienceYears, E.specialization, E.status FROM Examiner AS E WHERE ID = @examinerID
     SELECT EM.ID AS examinerID,EM.name AS examinerName,
@@ -527,6 +604,8 @@ const queries = {
       WHERE E.status = 1 AND EM.ID = @examinerID AND ES.endTime < CAST(GETDATE() AS DATE)
       GROUP BY EM.ID ,EM.name, S.code, C.name, C.subjectID, ES.startTime, ES.endTime, ES.ID, ER.ID, ER.classRoomID, ER.status
     COMMIT;`,
+
+  //Note api income: Lấy thông tin lương của một Examiner trong một kỳ
   income: `
     SELECT EM.ID ,EM.name, S.code, (SUM(DATEDIFF(MINUTE,ES.startTime, ES.endTime)) / 60 * 100000) as 'salary' 
     FROM Semester S
@@ -539,6 +618,8 @@ const queries = {
     WHERE E.status = 1 AND EM.ID = @examinerID AND S.code = @semesterCode AND ER.status = 'present'
     GROUP BY EM.ID ,EM.name, S.code, ER.status
       `,
+
+  //Note api getAllIncome: Lấy thông tin lương của tất cả Examiner trong một kỳ
   getAllIncome: `
     SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
     FROM Semester A 
@@ -551,6 +632,8 @@ const queries = {
     WHERE E.status = 1 AND A.code = @SemesterCode AND ER.status = 'present'
     GROUP BY F.ID ,F.name, A.code, A.ID, ER.status
       `,
+
+  //Note api getAllIncomeV2: Lấy thông tin lương của tất cả Examiner trong một kỳ
   getAllIncomeV2: `
     SELECT F.ID ,F.name, A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
     FROM Semester A 
@@ -563,6 +646,8 @@ const queries = {
     WHERE E.status = 1 AND ER.status = 'present'
     GROUP BY F.ID ,F.name, A.code, A.ID, ER.status
       `,
+
+  //Note api getExamRoomByExaminerID: Lấy thông tin phòng coi thi của một Examiner
   getExamRoomByExaminerID: `SELECT ES.ID AS examSlotID, ER.classRoomID AS classRoomCode, ER.ID AS examRoomID, ER.status AS attendanceStatus, S.name AS subjectName, ES.quantity AS totalExaminerInSlot, ES.status, ES.startTime, ES.endTime
     FROM ExamSlot ES 
     INNER JOIN Register RE ON RE.examSlotID = ES.ID
@@ -573,6 +658,8 @@ const queries = {
     INNER JOIN ExamRoom ER ON ER.examSlotID = ES.ID
     INNER JOIN Subject S ON ER.subjectID = S.ID
     WHERE EX.ID = @examinerID AND RE.status = 1`,
+
+  //Note api getFinishedExamSlot: Lấy thông tin phòng coi thi của một Examiner đã hoàn thành
   getFinishedExamSlot: `
     BEGIN TRANSACTION;
       DECLARE @ExamRoomExists BIT;
@@ -602,6 +689,7 @@ const queries = {
       END;
       COMMIT
     `,
+  //Note api getFinishedExamSlot: Lấy thông tin phòng coi thi của một Examiner chưa hoàn thành
   getUnFinishedExamSlot: `
     BEGIN TRANSACTION;
       DECLARE @ExamRoomExists BIT;
@@ -631,6 +719,8 @@ const queries = {
       END;
       COMMIT
     `,
+  
+  //Note api filterExamSlotAll: Filter thông tin phòng thi mặc định
   filterExamSlotAll:`SELECT
     --Lấy thông tin ExamSlot
     ES.ID AS examSlotID, ES.quantity AS quantity,
@@ -647,10 +737,12 @@ const queries = {
     INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
     INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
-    WHERE ER.examinerID = @examinerID
+    WHERE ER.examinerID = @examinerID AND ES.status = 1
     GROUP BY ES.ID, ES.quantity, ES.startTime,
     ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
     E.name, E.ID, ER.status, ER.examinerID`,
+
+  //Note api filterExamSlotAll: Filter thông tin phòng thi theo semester
   filterExamSlotSemester:`SELECT
     --Lấy thông tin ExamSlot
     ES.ID AS examSlotID, ES.quantity AS quantity,
@@ -667,10 +759,12 @@ const queries = {
     INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
     INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
-    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID
+    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID AND ES.status = 1
     GROUP BY ES.ID, ES.quantity, ES.startTime,
     ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
     E.name, E.ID, ER.status, ER.examinerID`,
+
+  //Note api filterExamSlotAll: Filter thông tin phòng thi theo semester, month
   filterExamSlotMonth:`SELECT
     --Lấy thông tin ExamSlot
     ES.ID AS examSlotID, ES.quantity AS quantity,
@@ -687,10 +781,12 @@ const queries = {
     INNER JOIN ExamSlot AS ES ON EB.ID = ES.examBatchID
     INNER JOIN ExamRoom AS ER ON ES.ID = ER.examSlotID
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
-    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID AND MONTH(ES.startTime) = @month
+    WHERE ER.examinerID = @examinerID AND S.ID = @semesterID AND MONTH(ES.startTime) = @month AND ES.status = 1
     GROUP BY ES.ID, ES.quantity, ES.startTime,
     ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
     E.name, E.ID, ER.status, ER.examinerID`,
+
+  //Note api filterExamSlotAll: Filter thông tin phòng thi theo semester, month, week
   filterExamSlotWeek:`SELECT
     --Lấy thông tin ExamSlot
     ES.ID AS examSlotID, ES.quantity AS quantity,
@@ -709,13 +805,15 @@ const queries = {
     LEFT JOIN Examiner AS E ON ER.examinerID = E.ID
     WHERE ER.examinerID = @examinerID AND S.ID = @semesterID
           AND MONTH(ES.startTime) = @month
-          AND (DATEPART(DAY, ES.startTime) - 1) / 7 + 1 = @week
+          AND (DATEPART(DAY, ES.startTime) - 1) / 7 + 1 = @week AND ES.status = 1
     GROUP BY ES.ID, ES.quantity, ES.startTime,
           ES.endTime, ES.status, C.name, S.name, S.ID, ER.classRoomID, ER.ID,
           E.name, E.ID, ER.status, ER.examinerID;`,
   // QUERY CHO DOWNLOAD EXCEL
 
   // QUERY CHO STUDENT
+
+  //Note api getExamSlotByStudentID: Lấy danh sách ca thi của một sinh viên
   getExamSlotByStudentID: `
     BEGIN TRANSACTION;
     SELECT DISTINCT ER.ID AS examRoom, ES.ID AS examSlot, ES.startTime, ES.endTime, ES.status, EB.code AS examBatch, ER.classRoomID AS classRoom, SU.code AS subjectCode, SU.name AS subjectName
@@ -732,6 +830,8 @@ const queries = {
     COMMIT;
     `,
   // QUERY CHO USERS
+
+  //Note api getUserByEmail: Lấy thông tin User bằng email
   getUserByEmail: `BEGIN TRANSACTION;
     DECLARE @examinerID VARCHAR(50);
     DECLARE @studentID VARCHAR(50);
@@ -756,10 +856,17 @@ const queries = {
       SELECT @emailUser AS email, @Role AS Role, @userName AS userName, @ID AS ID
     END
     COMMIT;`,
+
+  //Note api getUserByID: Lấy thông tin User bằng ID
   getUserByID: `SELECT U.Role, U.userName, U.email, U.ID FROM dbo.Users AS U WHERE U.ID = @ID`,
+
   // QUERY CHO REGISTER
+
+  //Note api getRegisterWithExaminerInfo: Lấy thông tin danh sách đăng ký của một Examiner
   getRegisterWithExaminerInfo: `SELECT R.examSlotID, R.examinerID, E.name, R.status FROM Register AS R
   INNER JOIN Examiner AS E ON R.examinerID = E.ID WHERE R.status = 1`,
+
+  //Note api register: Đăng ký vào một ExamSlot
   register: `BEGIN TRANSACTION;
     DECLARE @ID VARCHAR(10);
     DECLARE @userID VARCHAR(10);
@@ -790,6 +897,8 @@ const queries = {
       END
     END;
     COMMIT;`,
+
+  //Note api getRegisteredInformation: Lấy thông tin danh sách đăng ký của một ExamSlot
   getRegisteredInformation: `
     SELECT E.ID AS 'Examiner ID', E.name, E.email, E.experienceYears,
     E.specialization, ES.ID as 'Exam Slot ID', ES.startTime, ES.endTime,
@@ -799,6 +908,8 @@ const queries = {
     LEFT JOIN ExamSlot ES ON ES.ID = R.examSlotID
     WHERE E.ID = @examinerID AND ES.ID = @examSlotID
   `,
+
+  //Note api checkUpdteRegisterIsLessThan3Day: Kiểm tra thời gian hủy đăng ký giữa hiện tại và ngày thi có <= 3 ngày không?
   checkUpdteRegisterIsLessThan3Day: `
     DECLARE @Now DATETIME = GETDATE();
     SELECT CASE
@@ -810,12 +921,19 @@ const queries = {
         ) THEN 1
         ELSE 0
     END AS Result;`,
+
+  //Note api updateRegister: Hủy đăng ký, api dành cho role Lecturer 
   updateRegister: `BEGIN TRANSACTION;
     DELETE [dbo].[Register] WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
     UPDATE [dbo].[ExamRoom] SET [examinerID] = '' WHERE [examinerID] = @examinerID AND [examSlotID] = @examSlotID
     COMMIT`,
+
+  //Note api getListExaminerRegister: Lấy danh sách Examiner đã đăng ký vào 1 ca thi
   getListExaminerRegister: `SELECT R.examinerID, R.examSlotID, R.status FROM [dbo].[Register] AS R WHERE R.examSlotID = @examSlotID AND R.status=1`,
+
   // QUERY CHO DEPARTMENT
+
+  //Note api getDepartmentSalary: Lấy thông tin lương chi trả cho một Department
   getDepartmentSalary: `
     WITH ExaminerSalaries AS (
       SELECT
@@ -837,7 +955,10 @@ const queries = {
     FROM ExaminerSalaries
     GROUP BY [Department];
     `,
+
   // QUERY CHO SEMESTER
+
+  //Note api getAllSalariesEachSemester: Lấy thông tin lương chi trả cho mỗi semester
   getAllSalariesEachSemester: `
     SELECT A.code, A.ID as 'Semester ID', (SUM(DATEDIFF(MINUTE,D.startTime, D.endTime)) / 60 * 100000) as 'salary' 
     FROM Semester A 
@@ -848,6 +969,8 @@ const queries = {
     WHERE ER.status = 'present'
     GROUP BY A.code, A.ID
     `,
+
+  //Note api updateAttendanceStatus: Cập nhật thông tin điểm danh
   updateAttendanceStatus: `
   BEGIN TRANSACTION;
   UPDATE ExamRoom SET status =  @attendanceStatus WHERE ID = @examRoomID

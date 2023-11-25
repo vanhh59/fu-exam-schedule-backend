@@ -282,7 +282,7 @@ module.exports = class Examiner {
     if (week == null || week == '""' || week == undefined || week == 'undefined') {
       week = ''
     }
-    console.log(typeof examinerID,typeof semesterID,typeof month,typeof week);
+
     if (semesterID != null && semesterID != undefined && semesterID != '""' && semesterID != '' && semesterID != 'undefined') {
       sqlQuery = queries.filterExamSlotSemester;
       if (month != null && month != undefined && month != '""' && month != '' && month != 'undefined') {
