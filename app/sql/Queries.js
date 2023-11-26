@@ -523,39 +523,59 @@ const queries = {
 
   //Note api fieldInfoExamSchedule: Nhập thông tin cho ExamRoom
   fieldInfoExamSchedule: `BEGIN TRANSACTION;
+    -- Biến kiểm tra ExamRoom đã tồn tại hay chưa
     DECLARE @ExamRoomExists BIT;
-    SELECT @ExamRoomExists = CASE
-        -- Check trường hợp đã tồn tại ExamRoom rồi thì return 1 (true) ngược lại thì return 0 (false)
-        WHEN EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.classRoomID = @classRoomID AND ER.examSlotID = @examSlotID) THEN 1
-        ELSE 0
-    END;
+    IF EXISTS (SELECT 1 FROM dbo.ExamRoom AS ER WHERE ER.classRoomID = @classRoomID AND ER.examSlotID = @examSlotID)
+        SET @ExamRoomExists = 1;
+    ELSE
+        SET @ExamRoomExists = 0;
+    
+    -- Nếu tồn tại return false, ngược lại thì thực hiện tiếp
     IF @ExamRoomExists = 1
-    BEGIN
         SELECT CAST(0 AS BIT) AS Result;
-    END
     ELSE
     BEGIN
-      -- Tạo new record trong table ExamRoom (phòng thi)
-      DECLARE @numericPart INT
-      SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT)) FROM ExamRoom AS ER
-      SET @numericPart = ISNULL(@numericPart, 0) + 1
-      DECLARE @examRoomID NVARCHAR(50) = 'R' + CAST(@numericPart AS NVARCHAR(50))
-      INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID, status)
-      VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, '', 'not_yet')
-      --------------------------------------
-    DECLARE @quantity INT
-      DECLARE @capacity INT
-      DECLARE @totalStudent INT
-      -- Tính tổng số giám thị cần có của một ExamSlot (ca thi)
-      SELECT @capacity = CR.capacity FROM ExamRoom as ER
-      INNER JOIN Classroom as CR ON ER.classRoomID = CR.ID WHERE ER.ID = @examRoomID
-      SELECT @totalStudent = COUNT(SE.studentID) FROM Stu_ExamRoom as SE
-      WHERE SE.examRoomID = @examRoomID
-      SET @quantity = (@totalStudent / @capacity) + 5
-      UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examRoomID
-      SELECT CAST(1 AS BIT) AS Result;
+        -- Tạo một record mới trong table ExamRoom
+        DECLARE @numericPart INT;
+        SELECT TOP 1 @numericPart = MAX(CAST(SUBSTRING(ER.ID, 2, LEN(ER.ID)) AS INT)) FROM ExamRoom AS ER;
+        SET @numericPart = ISNULL(@numericPart, 0) + 1;
+        
+        DECLARE @examRoomID NVARCHAR(50) = 'R' + CAST(@numericPart AS NVARCHAR(50));
+    
+        INSERT INTO ExamRoom(ID, classRoomID, examSlotID, subjectID, examinerID, status)
+        VALUES (@examRoomID, @classRoomID, @examSlotID, @subjectID, '', 'not_yet');
+    
+        -- Biến tính toán số lượng Examiner cần thiết
+        DECLARE @quantity INT;
+        DECLARE @currentQuantity INT;
+        DECLARE @capacity INT;
+        DECLARE @totalStudent INT;
+    
+        -- Lấy số lượng Examiner cần thiết hiện tại của ExamSlot
+        SELECT @currentQuantity = ES.quantity FROM ExamSlot AS ES WHERE ES.ID = @examSlotID;
+      -- Nếu = 0 thì thực hiện tính số lượng quantity 
+        IF @currentQuantity = 0
+        BEGIN
+            SELECT @capacity = CR.capacity FROM ExamRoom AS ER
+            INNER JOIN Classroom AS CR ON ER.classRoomID = CR.ID WHERE ER.ID = @examRoomID;
+    
+            SELECT @totalStudent = COUNT(SE.studentID) FROM Stu_ExamRoom AS SE
+            WHERE SE.examRoomID = @examRoomID;
+    
+            SET @quantity = (@totalStudent / @capacity) + 5;
+    
+            UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @quantity WHERE ID = @examSlotID;
+            SELECT CAST(1 AS BIT) AS Result;
+        END
+        ELSE
+        BEGIN
+            -- Nếu != 0 thì thực hiện lấy quantity hiện tại + 1
+            UPDATE [dbo].[ExamSlot] SET [status] = 1, [quantity] = @currentQuantity + 1 WHERE ID = @examSlotID;
+            SELECT CAST(1 AS BIT) AS Result;
+        END
     END;
-    COMMIT`,
+    
+    COMMIT;`,
 
   //Note api getExamRoomInSemester: Lấy danh sách ExamRoom trong một kỳ cụ thể
   getExamRoomInSemester: `
