@@ -260,9 +260,9 @@ module.exports = class Dashboard {
       const outputString = `${dayOfWeek}, ${day}/${month}/${year} at ${time}`;
 
       //email message option
-      // gửi mail cho từng sinh viên
       const mailOption = {
-        from: "nguyenhuykhaipch94@gmail.com",
+        //from: "nguyenhuykhaipch94@gmail.com",
+        from: "vietanhcode@gmail.com",
         to: "",
         subject: "[REMIND] EMAIL FROM FU_EXAM_SCHEDULE APPLICATION",
         text: `There will be an exam at ${outputString}. Please go to fu-exam-schedule for more details.`,
@@ -271,10 +271,10 @@ module.exports = class Dashboard {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
+          //user: "nguyenhuykhaipch94@gmail.com",
           user: "vietanhcode@gmail.com",
+          pass: "zyzj ntuj ilws fwri",
           //pass: "deao tttb zdia nfev",
-          pass: "Swp391@@@",
-          // pass là mã xác thực ứng dụng
         },
       });
       //Schedule a date
