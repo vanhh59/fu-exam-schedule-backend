@@ -109,30 +109,34 @@ module.exports = class Dashboard {
         }
       });
   }
-  
+
   async createMultipleExamRoom(dataArray, result) {
     try {
       var pool = await conn;
-      const roomCreate= [];
+      const roomCreate = [];
       for (let i = 0; i < dataArray.length; i++) {
         console.log(dataArray[i]);
         var sqlQuery = queries.fieldInfoExamSchedule;
-  
+
         try {
           const request = pool.request();
           request.input("classRoomID", sql.VarChar, dataArray[i].classRoomID)
           request.input("examSlotID", sql.VarChar, dataArray[i].dataExamSlotID)
           request.input("subjectID", sql.VarChar, dataArray[i].subjectID)
           const data = await request.query(sqlQuery);
-          
+
           if (!data?.recordsets[0][0].Result) {
-            result({message: `Error during process create new room`,
-                    roomCreate: roomCreate}, null);
+            result({
+              message: `Error during process create new room`,
+              roomCreate: roomCreate
+            }, null);
             return;
           }
-          roomCreate.push({classRoomID: dataArray[i].classRoomID,
-                           examSlotID: dataArray[i].dataExamSlotID,
-                           subjectID: dataArray[i].subjectID})
+          roomCreate.push({
+            classRoomID: dataArray[i].classRoomID,
+            examSlotID: dataArray[i].dataExamSlotID,
+            subjectID: dataArray[i].subjectID
+          })
         } catch (error) {
           console.error("Error:", error);
           result(error, null);
@@ -150,15 +154,15 @@ module.exports = class Dashboard {
     var pool = await conn;
     var sqlQuery = queries.getListExaminerRegister;
     return await pool
-    .request()
-    .input("examSlotID", sql.VarChar, id)
-    .query(sqlQuery, function (error, data) {
-      if (data.recordset && data.recordset.length > 0) {
-        result(null, data.recordset);
-      } else {
-        result(true, null);
-      }
-    });
+      .request()
+      .input("examSlotID", sql.VarChar, id)
+      .query(sqlQuery, function (error, data) {
+        if (data.recordset && data.recordset.length > 0) {
+          result(null, data.recordset);
+        } else {
+          result(true, null);
+        }
+      });
   }
 
   async importExcelFile(data, result) {
@@ -172,11 +176,11 @@ module.exports = class Dashboard {
       const worksheet = workbook.getWorksheet(1);
 
       // Check if the number of student is more than 25 then return;
-    if (worksheet.rowCount > 26) {
-      console.log("Import excel file fail: Too many student (more than 25). Returning false.");
-      result(true, (data = "Too many student (more than 25)"));
-      return;
-    }
+      if (worksheet.rowCount > 26) {
+        console.log("Import excel file fail: Too many student (more than 25). Returning false.");
+        result(true, (data = "Too many student (more than 25)"));
+        return;
+      }
 
       for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
         const row = worksheet.getRow(rowNumber);
@@ -238,7 +242,7 @@ module.exports = class Dashboard {
       if (currentDay > targetDate) {
         return 1;
       }
-      
+
       // Chuyển đổi type DateTime thành kiểu Wed, 13/12/2023 at 00:30:00 
       const inputDateString = students.recordset[0].startTime;
 
@@ -256,6 +260,7 @@ module.exports = class Dashboard {
       const outputString = `${dayOfWeek}, ${day}/${month}/${year} at ${time}`;
 
       //email message option
+      // gửi mail cho từng sinh viên
       const mailOption = {
         from: "nguyenhuykhaipch94@gmail.com",
         to: "",
@@ -266,8 +271,10 @@ module.exports = class Dashboard {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: "nguyenhuykhaipch94@gmail.com",
-          pass: "deao tttb zdia nfev",
+          user: "vietanhcode@gmail.com",
+          //pass: "deao tttb zdia nfev",
+          pass: "Swp391@@@",
+          // pass là mã xác thực ứng dụng
         },
       });
       //Schedule a date
