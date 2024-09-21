@@ -1,4 +1,4 @@
-http://localhost:3000/hello?name=Viet anh&email=vanhcode@gmail.com&phone=0972743536
+http://localhost:3000/hello?name=Viet anh&email=&phone=
 http://localhost:3000/student/vanhh59
 
 cài đặt thêm gói thao tác dữ liệu CRUD
